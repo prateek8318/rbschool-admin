@@ -1,6 +1,5 @@
 import React from 'react';
-import { Menu, Bell, Search, Settings, User, LogOut, ChevronDown, HelpCircle, Zap, Crown, Star } from 'lucide-react';
-import { useUiStore } from '../../store/uiStore';
+import { Bell, Search, Settings, User, LogOut, ChevronDown, HelpCircle, Zap, Crown, Star } from 'lucide-react';
 
 interface TopbarProps {
   title: string;
@@ -9,7 +8,6 @@ interface TopbarProps {
 }
 
 export const Topbar: React.FC<TopbarProps> = ({ title, subtitle, actions }) => {
-  const toggleSidebar = useUiStore((state) => state.toggleSidebar);
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [notificationsOpen, setNotificationsOpen] = React.useState(false);
   const [profileOpen, setProfileOpen] = React.useState(false);
@@ -24,13 +22,7 @@ export const Topbar: React.FC<TopbarProps> = ({ title, subtitle, actions }) => {
     <>
       <header className="sticky top-0 z-40 flex h-18 items-center justify-between bg-white/95 backdrop-blur-xl px-6 border-b border-slate-200/50 shadow-sm">
         <div className="flex items-center gap-4">
-          <button
-            onClick={toggleSidebar}
-            className="p-2.5 -ml-2.5 text-slate-600 rounded-xl lg:hidden hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 hover:scale-105"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          
+          {/* Remove hamburger from here since Header already has it */}
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-gradient-to-br from-blue-600/10 to-indigo-600/10">
               <div className="w-5 h-5 bg-gradient-to-br from-blue-600 to-indigo-600 rounded" />
@@ -140,7 +132,7 @@ export const Topbar: React.FC<TopbarProps> = ({ title, subtitle, actions }) => {
                       VS
                     </div>
                     <div>
-                      <div className="text-sm font-semibold text-slate-800">Vikram Singh</div>
+                      <div className="text-sm font-semibold text-slate-800">Vinod Srivastava</div>
                       <div className="text-xs text-slate-500">Administrator</div>
                     </div>
                   </div>

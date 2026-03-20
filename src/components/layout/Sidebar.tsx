@@ -14,7 +14,8 @@ import {
   LogOut,
   UserCheck,
   Sparkles,
-  Crown
+  Crown,
+  X
 } from 'lucide-react';
 import logoImage from '../../assets/R. B. LOGO.png';
 
@@ -55,50 +56,61 @@ export const Sidebar: React.FC = () => {
       />
 
       {/* Sidebar component */}
-      <div className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-slate-900 text-white min-h-screen overflow-y-auto lg:translate-x-0 lg:static lg:flex-shrink-0 transform transition-transform duration-300 ease-in-out w-64 border-r border-slate-700`}
+      <div className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-slate-900 text-white min-h-screen overflow-y-auto lg:translate-x-0 lg:static lg:flex-shrink-0 transform transition-transform duration-300 ease-in-out w-64 border-r border-slate-700 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}
       >
+        {/* Mobile close button */}
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-800 transition-colors duration-200 lg:hidden"
+          aria-label="Close sidebar"
+        >
+          <X className="w-5 h-5 text-slate-400" />
+        </button>
+
         {/* Logo */}
-        <div className="px-6 py-8 border-b border-slate-700/50">
-          <div className="flex flex-col items-center gap-4">
+        <div className="px-4 py-6 border-b border-slate-700/50 lg:px-6 lg:py-8">
+          <div className="flex flex-col items-center gap-3 lg:gap-4">
             <div className="relative">
               <img 
                 src={logoImage} 
                 alt="RB School Logo" 
-                className="w-20 h-20 rounded-full shadow-xl shadow-blue-500/30 object-contain"
+                className="w-16 h-16 lg:w-20 lg:h-20 rounded-full shadow-xl shadow-blue-500/30 object-contain"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
                   target.nextElementSibling?.classList.remove('hidden');
                 }}
               />
-              <div className="hidden w-20 h-20 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-2xl shadow-xl shadow-blue-500/30">
+              <div className="hidden w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xl lg:text-2xl shadow-xl shadow-blue-500/30">
                 RB
               </div>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                <Crown className="w-2 h-2 text-white" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 lg:w-4 lg:h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                <Crown className="w-1.5 h-1.5 lg:w-2 lg:h-2 text-white" />
               </div>
             </div>
             <div className="text-center">
-              <div className="text-sm font-black text-white flex items-center gap-2">RB KENDRIYA VIDYALAYA
+              <div className="text-xs lg:text-sm font-black text-white flex items-center gap-1 lg:gap-2">RB KENDRIYA VIDYALAYA
                {/* <span className="text-blue-400 text-xl">  </span> */}
-                <Sparkles className="w-4 h-4 text-yellow-400" />
+                <Sparkles className="w-3 h-3 lg:w-4 lg:h-4 text-yellow-400" />
               </div>
-              <div className="text-sm text-slate-500 font-medium">SIDHAUT GHAZIPUR</div>
+              <div className="text-xs lg:text-sm text-slate-500 font-medium">SIDHAUT GHAZIPUR</div>
             </div>
           </div>
         </div>
 
         {/* Main Navigation */}
-        <div className="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
+        <div className="flex-1 px-3 py-4 lg:px-4 lg:py-6 space-y-4 lg:space-y-6 overflow-y-auto">
           <div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-4">Main Menu</div>
-            <nav className="space-y-2">
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-3 lg:mb-4">Main Menu</div>
+            <nav className="space-y-1 lg:space-y-2">
               {navigation.map((item) => (
                 <NavLink
                   key={item.name}
                   to={item.href}
                   className={({ isActive }) =>
-                    `group flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 relative overflow-hidden ${
+                    `group flex items-center gap-3 lg:gap-4 px-3 py-2.5 lg:px-4 lg:py-3 rounded-lg lg:rounded-xl cursor-pointer transition-all duration-300 relative overflow-hidden ${
                       isActive
                         ? `bg-gradient-to-r ${item.color} text-white font-semibold shadow-lg shadow-blue-500/30`
                         : 'text-slate-300 hover:bg-slate-800/50 hover:text-white hover:shadow-md'
@@ -106,26 +118,26 @@ export const Sidebar: React.FC = () => {
                   }
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <div className={`w-6 h-6 flex items-center justify-center transition-colors duration-300`}>
-                    <item.icon className="w-6 h-6" />
+                  <div className={`w-5 h-5 lg:w-6 lg:h-6 flex items-center justify-center transition-colors duration-300`}>
+                    <item.icon className="w-5 h-5 lg:w-6 lg:h-6" />
                   </div>
-                  <div className="flex-1">
-                    <div className="text-base font-semibold">{item.name}</div>
-                    <div className="text-xs text-slate-400 group-hover:text-slate-300 mt-1">{item.description}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm lg:text-base font-semibold truncate">{item.name}</div>
+                    <div className="text-xs text-slate-400 group-hover:text-slate-300 mt-0.5 lg:mt-1 hidden lg:block">{item.description}</div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 lg:gap-2 flex-shrink-0">
                     {item.badge && (
-                      <span className="px-2 py-1 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-full animate-pulse">
+                      <span className="px-1.5 py-0.5 lg:px-2 lg:py-1 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-full animate-pulse">
                         {item.badge}
                       </span>
                     )}
                     {item.count && (
-                      <span className="px-2 py-1 text-xs font-bold text-slate-300 bg-slate-700 rounded-full">
+                      <span className="px-1.5 py-0.5 lg:px-2 lg:py-1 text-xs font-bold text-slate-300 bg-slate-700 rounded-full">
                         {item.count}
                       </span>
                     )}
                     {item.name === 'Dashboard' && (
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                      <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-green-400 rounded-full animate-pulse" />
                     )}
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
@@ -136,14 +148,14 @@ export const Sidebar: React.FC = () => {
 
           {/* Academic Navigation */}
           <div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-4">Academic</div>
-            <nav className="space-y-2">
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-3 lg:mb-4">Academic</div>
+            <nav className="space-y-1 lg:space-y-2">
               {academicNav.map((item) => (
                 <NavLink
                   key={item.name}
                   to={item.href}
                   className={({ isActive }) =>
-                    `group flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 relative overflow-hidden ${
+                    `group flex items-center gap-3 lg:gap-4 px-3 py-2.5 lg:px-4 lg:py-3 rounded-lg lg:rounded-xl cursor-pointer transition-all duration-300 relative overflow-hidden ${
                       isActive
                         ? `bg-gradient-to-r ${item.color} text-white font-semibold shadow-lg`
                         : 'text-slate-300 hover:bg-slate-800/50 hover:text-white hover:shadow-md'
@@ -151,26 +163,26 @@ export const Sidebar: React.FC = () => {
                   }
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <div className="w-6 h-6 flex items-center justify-center">
-                    <item.icon className="w-6 h-6" />
+                  <div className="w-5 h-5 lg:w-6 lg:h-6 flex items-center justify-center">
+                    <item.icon className="w-5 h-5 lg:w-6 lg:h-6" />
                   </div>
-                  <div className="flex-1">
-                    <div className="text-base font-semibold">{item.name}</div>
-                    <div className="text-xs text-slate-400 group-hover:text-slate-300 mt-1">{item.description}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm lg:text-base font-semibold truncate">{item.name}</div>
+                    <div className="text-xs text-slate-400 group-hover:text-slate-300 mt-0.5 lg:mt-1 hidden lg:block">{item.description}</div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 lg:gap-2 flex-shrink-0">
                     {item.badge && (
-                      <span className="px-2 py-1 text-xs font-bold text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-full">
+                      <span className="px-1.5 py-0.5 lg:px-2 lg:py-1 text-xs font-bold text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-full">
                         {item.badge}
                       </span>
                     )}
                     {item.percentage && (
-                      <span className="px-2 py-1 text-xs font-bold text-green-400 bg-green-500/20 rounded-full">
+                      <span className="px-1.5 py-0.5 lg:px-2 lg:py-1 text-xs font-bold text-green-400 bg-green-500/20 rounded-full">
                         {item.percentage}
                       </span>
                     )}
                     {item.amount && (
-                      <span className="px-2 py-1 text-xs font-bold text-amber-400 bg-amber-500/20 rounded-full">
+                      <span className="px-1.5 py-0.5 lg:px-2 lg:py-1 text-xs font-bold text-amber-400 bg-amber-500/20 rounded-full">
                         {item.amount}
                       </span>
                     )}
@@ -183,14 +195,14 @@ export const Sidebar: React.FC = () => {
 
           {/* Communication Navigation */}
           <div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-4">Communication</div>
-            <nav className="space-y-2">
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-3 lg:mb-4">Communication</div>
+            <nav className="space-y-1 lg:space-y-2">
               {communicationNav.map((item) => (
                 <NavLink
                   key={item.name}
                   to={item.href}
                   className={({ isActive }) =>
-                    `group flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 relative overflow-hidden ${
+                    `group flex items-center gap-3 lg:gap-4 px-3 py-2.5 lg:px-4 lg:py-3 rounded-lg lg:rounded-xl cursor-pointer transition-all duration-300 relative overflow-hidden ${
                       isActive
                         ? `bg-gradient-to-r ${item.color} text-white font-semibold shadow-lg`
                         : 'text-slate-300 hover:bg-slate-800/50 hover:text-white hover:shadow-md'
@@ -198,16 +210,16 @@ export const Sidebar: React.FC = () => {
                   }
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <div className="w-6 h-6 flex items-center justify-center">
-                    <item.icon className="w-6 h-6" />
+                  <div className="w-5 h-5 lg:w-6 lg:h-6 flex items-center justify-center">
+                    <item.icon className="w-5 h-5 lg:w-6 lg:h-6" />
                   </div>
-                  <div className="flex-1">
-                    <div className="text-base font-semibold">{item.name}</div>
-                    <div className="text-xs text-slate-400 group-hover:text-slate-300 mt-1">{item.description}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm lg:text-base font-semibold truncate">{item.name}</div>
+                    <div className="text-xs text-slate-400 group-hover:text-slate-300 mt-0.5 lg:mt-1 hidden lg:block">{item.description}</div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 lg:gap-2 flex-shrink-0">
                     {item.count && (
-                      <span className="px-2 py-1 text-xs font-bold text-white bg-gradient-to-r from-rose-600 to-pink-600 rounded-full animate-pulse">
+                      <span className="px-1.5 py-0.5 lg:px-2 lg:py-1 text-xs font-bold text-white bg-gradient-to-r from-rose-600 to-pink-600 rounded-full animate-pulse">
                         {item.count}
                       </span>
                     )}
@@ -220,12 +232,12 @@ export const Sidebar: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-4 border-t border-slate-700/50">
+        <div className="px-3 py-3 lg:px-4 lg:py-4 border-t border-slate-700/50">
           <button
             onClick={handleLogout}
-            className="group flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 text-base font-semibold hover:bg-red-500/10 hover:text-red-400 transition-all duration-300 w-full relative overflow-hidden"
+            className="group flex items-center gap-3 lg:gap-4 px-3 py-2.5 lg:px-4 lg:py-3 rounded-lg lg:rounded-xl text-slate-400 text-sm lg:text-base font-semibold hover:bg-red-500/10 hover:text-red-400 transition-all duration-300 w-full relative overflow-hidden"
           >
-            <LogOut className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
+            <LogOut className="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform duration-300" />
             <span>Logout</span>
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
           </button>
