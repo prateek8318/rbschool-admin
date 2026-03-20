@@ -5,16 +5,24 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   error?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  helperText?: string;
+  variant?: 'default' | 'filled' | 'outlined';
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className = '', label, error, leftIcon, rightIcon, id, ...props }, ref) => {
+  ({ className = '', label, error, leftIcon, rightIcon, helperText, variant = 'default', id, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+    
+    const variants = {
+      default: 'input-field',
+      filled: 'bg-slate-100 border-slate-200 focus:bg-white focus:border-indigo-500',
+      outlined: 'bg-transparent border-2 border-slate-200 focus:border-indigo-500 focus:bg-white/50'
+    };
     
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-slate-700 mb-1.5">
+          <label htmlFor={inputId} className="block text-sm font-semibold text-slate-700 mb-2">
             {label}
           </label>
         )}
@@ -28,12 +36,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             ref={ref}
             className={`
-              block w-full rounded-xl border-slate-300 bg-white shadow-sm
-              transition-colors focus:border-blue-500 focus:ring-blue-500 sm:text-sm
-              disabled:opacity-50 disabled:bg-slate-50 disabled:cursor-not-allowed
+              ${variants[variant]}
               ${leftIcon ? 'pl-10' : 'pl-4'}
               ${rightIcon ? 'pr-10' : 'pr-4'}
-              ${error ? 'border-red-300 text-red-900 focus:border-red-500 focus:ring-red-500 placeholder-red-300' : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'}
+              ${error ? 'border-red-300 text-red-900 focus:border-red-500 focus:ring-red-500 placeholder-red-300' : ''}
               ${className}
             `}
             {...props}
@@ -45,7 +51,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <p className="mt-1.5 text-sm text-red-500">{error}</p>
+          <p className="mt-1.5 text-sm text-red-500 flex items-center gap-1">
+            <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+            {error}
+          </p>
+        )}
+        {helperText && !error && (
+          <p className="mt-1.5 text-sm text-slate-500">{helperText}</p>
         )}
       </div>
     );

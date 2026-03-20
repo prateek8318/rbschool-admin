@@ -1,100 +1,174 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useUiStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { 
-  LayoutDashboard, 
+  Home, 
   Users, 
   GraduationCap, 
-  BookOpen, 
-  CalendarClock, 
+  Building2, 
   FileText, 
-  IndianRupee, 
-  Bell, 
-  Settings,
+  DollarSign, 
+  Megaphone, 
+  Settings, 
   LogOut,
-  X
+  UserCheck
 } from 'lucide-react';
-
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Students', href: '/students', icon: Users },
-  { name: 'Teachers', href: '/teachers', icon: GraduationCap },
-  { name: 'Classes', href: '/classes', icon: BookOpen },
-  { name: 'Attendance', href: '/attendance', icon: CalendarClock },
-  { name: 'Exams', href: '/exams', icon: FileText },
-  { name: 'Fees', href: '/fees', icon: IndianRupee },
-  { name: 'Announcements', href: '/announcements', icon: Bell },
-  { name: 'Settings', href: '/settings', icon: Settings },
-];
 
 export const Sidebar: React.FC = () => {
   const { sidebarOpen, setSidebarOpen } = useUiStore();
   const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: Home, description: 'Overview & Analytics' },
+    { name: 'Students', href: '/students', icon: Users, description: 'Student Management' },
+    { name: 'Teachers', href: '/teachers', icon: GraduationCap, description: 'Faculty Management' },
+    { name: 'Classes', href: '/classes', icon: Building2, description: 'Class & Section' },
+  ];
+
+  const academicNav = [
+    { name: 'Attendance', href: '/attendance', icon: UserCheck, description: 'Track Attendance' },
+    { name: 'Exams', href: '/exams', icon: FileText, description: 'Exams & Results' },
+    { name: 'Fees', href: '/fees', icon: DollarSign, description: 'Fee Management' },
+  ];
+
+  const communicationNav = [
+    { name: 'Announcements', href: '/announcements', icon: Megaphone, description: 'Notices & Updates' },
+    { name: 'Settings', href: '/settings', icon: Settings, description: 'System Settings' },
+  ];
 
   return (
     <>
       {/* Mobile overlay */}
       <div 
-        className={`fixed inset-0 z-40 bg-gray-900/80 backdrop-blur-sm lg:hidden transition-opacity duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden transition-opacity duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={() => setSidebarOpen(false)}
       />
 
       {/* Sidebar component */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex-shrink-0 flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between h-20 px-6 border-b border-slate-800/60 bg-slate-900/50">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/20">
-              <GraduationCap className="w-6 h-6 text-white" />
+      <div className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-slate-900 text-white min-h-screen overflow-y-auto lg:translate-x-0 lg:static lg:flex-shrink-0 transform transition-transform duration-300 ease-in-out w-64 border-r border-slate-700`}
+      >
+        {/* Logo */}
+        <div className="px-6 py-8 border-b border-slate-700">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-2xl shadow-xl">
+              RB
             </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400">
-              RBSchool
-            </span>
+            <div className="text-center">
+              <div className="text-2xl font-black text-white">
+                RB<span className="text-blue-400">School</span>
+              </div>
+              <div className="text-sm text-slate-400 font-medium">Management System</div>
+            </div>
           </div>
-          <button 
-            onClick={() => setSidebarOpen(false)}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg lg:hidden transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
-        <div className="flex-1 px-4 py-6 space-y-1 overflow-y-auto custom-scrollbar">
-          <div className="mb-4 px-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Menu
-          </div>
-          {navigation.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.href}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group ${
-                  isActive
-                    ? 'bg-blue-600/10 text-blue-400 font-medium'
-                    : 'text-slate-300 hover:bg-slate-800/50 hover:text-white'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <item.icon className={`w-5 h-5 transition-colors ${isActive ? 'text-blue-500' : 'text-slate-400 group-hover:text-blue-400'}`} />
-                  {item.name}
-                  {isActive && (
-                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+        {/* Main Navigation */}
+        <div className="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
+          <div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-4">Main Menu</div>
+            <nav className="space-y-2">
+              {navigation.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.href}
+                  className={({ isActive }) =>
+                    `group flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-lg shadow-blue-500/30'
+                        : 'text-slate-300 hover:bg-slate-800 hover:text-white hover:shadow-md'
+                    }`
+                  }
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <div className={`w-6 h-6 flex items-center justify-center transition-colors duration-300`}>
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-base font-semibold">{item.name}</div>
+                    <div className="text-xs text-slate-400 group-hover:text-slate-300 mt-1">{item.description}</div>
+                  </div>
+                  {item.name === 'Dashboard' && (
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                   )}
-                </>
-              )}
-            </NavLink>
-          ))}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+
+          {/* Academic Navigation */}
+          <div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-4">Academic</div>
+            <nav className="space-y-2">
+              {academicNav.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.href}
+                  className={({ isActive }) =>
+                    `group flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-lg shadow-blue-500/30'
+                        : 'text-slate-300 hover:bg-slate-800 hover:text-white hover:shadow-md'
+                    }`
+                  }
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <div className="w-6 h-6 flex items-center justify-center">
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-base font-semibold">{item.name}</div>
+                    <div className="text-xs text-slate-400 group-hover:text-slate-300 mt-1">{item.description}</div>
+                  </div>
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+
+          {/* Communication Navigation */}
+          <div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-4">Communication</div>
+            <nav className="space-y-2">
+              {communicationNav.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.href}
+                  className={({ isActive }) =>
+                    `group flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ${
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-lg shadow-blue-500/30'
+                        : 'text-slate-300 hover:bg-slate-800 hover:text-white hover:shadow-md'
+                    }`
+                  }
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <div className="w-6 h-6 flex items-center justify-center">
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-base font-semibold">{item.name}</div>
+                    <div className="text-xs text-slate-400 group-hover:text-slate-300 mt-1">{item.description}</div>
+                  </div>
+                </NavLink>
+              ))}
+            </nav>
+          </div>
         </div>
 
-        <div className="p-4 border-t border-slate-800">
+        {/* Footer */}
+        <div className="px-4 py-4 border-t border-slate-700">
           <button
-            onClick={logout}
-            className="flex items-center justify-center gap-2 w-full px-4 py-3 text-sm font-medium text-slate-300 bg-slate-800/50 border border-slate-700 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 rounded-xl transition-all duration-200"
+            onClick={handleLogout}
+            className="group flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 text-base font-semibold hover:bg-red-500/10 hover:text-red-400 transition-all duration-300 w-full"
           >
-            <LogOut className="w-4 h-4" />
-            Sign Out
+            <LogOut className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
+            <span>Logout</span>
           </button>
         </div>
       </div>

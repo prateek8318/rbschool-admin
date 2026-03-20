@@ -2,11 +2,12 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  fullWidth?: boolean;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -18,33 +19,36 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       isLoading = false,
       leftIcon,
       rightIcon,
+      fullWidth = false,
       children,
       disabled,
       ...props
     },
     ref
   ) => {
-    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm';
     
     const variants = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/30 focus:ring-blue-500 border border-transparent',
-      secondary: 'bg-slate-800 text-white hover:bg-slate-900 shadow-md shadow-slate-500/20 focus:ring-slate-800 border border-transparent',
-      outline: 'bg-transparent text-slate-700 hover:bg-slate-50 border border-slate-300 focus:ring-slate-500',
+      primary: 'btn-primary text-white shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 focus:ring-indigo-500 border border-transparent',
+      secondary: 'bg-gradient-to-r from-slate-700 to-slate-800 text-white hover:from-slate-800 hover:to-slate-900 shadow-md shadow-slate-500/20 focus:ring-slate-500 border border-slate-600',
+      outline: 'bg-white/50 backdrop-blur-sm text-slate-700 hover:bg-white hover:shadow-md border border-slate-200 focus:ring-slate-500',
       ghost: 'bg-transparent text-slate-600 hover:bg-slate-100 focus:ring-slate-500 border border-transparent',
-      danger: 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500 shadow-lg shadow-red-500/30 border border-transparent',
+      danger: 'bg-gradient-to-r from-red-500 to-pink-600 text-white hover:from-red-600 hover:to-pink-700 shadow-lg shadow-red-500/30 focus:ring-red-500 border border-transparent',
+      success: 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/30 focus:ring-green-500 border border-transparent',
     };
 
     const sizes = {
-      sm: 'px-3 py-1.5 text-sm',
+      sm: 'px-3 py-1.5 text-xs',
       md: 'px-4 py-2 text-sm',
       lg: 'px-6 py-3 text-base',
+      xl: 'px-8 py-4 text-lg',
     };
 
     return (
       <button
         ref={ref}
         disabled={disabled || isLoading}
-        className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+        className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
         {...props}
       >
         {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
