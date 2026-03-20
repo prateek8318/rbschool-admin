@@ -4,32 +4,150 @@ import { Topbar } from '../components/layout/Topbar';
 export const Classes: React.FC = () => {
   const classesData = [
     {
+      name: 'Class 1',
+      sections: '2 Sections',
+      students: '48 Students',
+      color: 'from-green-600 to-emerald-600'
+    },
+    {
+      name: 'Class 2',
+      sections: '2 Sections',
+      students: '52 Students',
+      color: 'from-blue-600 to-cyan-600'
+    },
+    {
+      name: 'Class 3',
+      sections: '3 Sections',
+      students: '63 Students',
+      color: 'from-purple-600 to-pink-600'
+    },
+    {
+      name: 'Class 4',
+      sections: '3 Sections',
+      students: '71 Students',
+      color: 'from-amber-600 to-orange-600'
+    },
+    {
+      name: 'Class 5',
+      sections: '3 Sections',
+      students: '68 Students',
+      color: 'from-rose-600 to-red-600'
+    },
+    {
+      name: 'Class 6',
+      sections: '3 Sections',
+      students: '75 Students',
+      color: 'from-indigo-600 to-blue-600'
+    },
+    {
+      name: 'Class 7',
+      sections: '3 Sections',
+      students: '82 Students',
+      color: 'from-teal-600 to-cyan-600'
+    },
+    {
       name: 'Class 8',
       sections: '3 Sections',
-      students: '127 Students',
-      color: 'from-blue-600 to-indigo-600'
-    },
-    {
-      name: 'Class 9',
-      sections: '3 Sections',
-      students: '134 Students',
-      color: 'from-blue-600 to-indigo-600'
-    },
-    {
-      name: 'Class 10',
-      sections: '4 Sections',
-      students: '148 Students',
-      color: 'from-blue-600 to-indigo-600'
-    },
-    {
-      name: 'Class 11',
-      sections: '2 Sections',
-      students: '96 Students',
+      students: '79 Students',
       color: 'from-blue-600 to-indigo-600'
     }
   ];
 
   const classSections = [
+    {
+      class: 'Class 1',
+      sections: ['1-A', '1-B'],
+      teachers: {
+        '1-A': 'Mrs. Sunita Devi',
+        '1-B': 'Ms. Anita Kumari'
+      },
+      students: {
+        '1-A': 24,
+        '1-B': 24
+      }
+    },
+    {
+      class: 'Class 2',
+      sections: ['2-A', '2-B'],
+      teachers: {
+        '2-A': 'Mrs. Pooja Singh',
+        '2-B': 'Ms. Rekha Gupta'
+      },
+      students: {
+        '2-A': 26,
+        '2-B': 26
+      }
+    },
+    {
+      class: 'Class 3',
+      sections: ['3-A', '3-B', '3-C'],
+      teachers: {
+        '3-A': 'Mr. Rajesh Kumar',
+        '3-B': 'Mrs. Meera Devi',
+        '3-C': 'Ms. Anita Sharma'
+      },
+      students: {
+        '3-A': 21,
+        '3-B': 21,
+        '3-C': 21
+      }
+    },
+    {
+      class: 'Class 4',
+      sections: ['4-A', '4-B', '4-C'],
+      teachers: {
+        '4-A': 'Mr. Amit Singh',
+        '4-B': 'Mrs. Priya Verma',
+        '4-C': 'Ms. Sunita Kumari'
+      },
+      students: {
+        '4-A': 24,
+        '4-B': 23,
+        '4-C': 24
+      }
+    },
+    {
+      class: 'Class 5',
+      sections: ['5-A', '5-B', '5-C'],
+      teachers: {
+        '5-A': 'Mr. Ramesh Prasad',
+        '5-B': 'Mrs. Anjali Devi',
+        '5-C': 'Ms. Pooja Singh'
+      },
+      students: {
+        '5-A': 22,
+        '5-B': 23,
+        '5-C': 23
+      }
+    },
+    {
+      class: 'Class 6',
+      sections: ['6-A', '6-B', '6-C'],
+      teachers: {
+        '6-A': 'Mr. Suresh Kumar',
+        '6-B': 'Mrs. Meera Singh',
+        '6-C': 'Mr. Rajesh Verma'
+      },
+      students: {
+        '6-A': 25,
+        '6-B': 25,
+        '6-C': 25
+      }
+    },
+    {
+      class: 'Class 7',
+      sections: ['7-A', '7-B', '7-C'],
+      teachers: {
+        '7-A': 'Mr. Amit Kumar',
+        '7-B': 'Mrs. Priya Mishra',
+        '7-C': 'Ms. Anita Verma'
+      },
+      students: {
+        '7-A': 27,
+        '7-B': 27,
+        '7-C': 28
+      }
+    },
     {
       class: 'Class 8',
       sections: ['8-A', '8-B', '8-C'],
@@ -39,51 +157,9 @@ export const Classes: React.FC = () => {
         '8-C': 'Mrs. Anjali Singh'
       },
       students: {
-        '8-A': 45,
-        '8-B': 42,
-        '8-C': 40
-      }
-    },
-    {
-      class: 'Class 9',
-      sections: ['9-A', '9-B', '9-C'],
-      teachers: {
-        '9-A': 'Mr. Suresh Sharma',
-        '9-B': 'Mrs. Anjali Singh',
-        '9-C': 'Mr. Amit Kumar'
-      },
-      students: {
-        '9-A': 42,
-        '9-B': 40,
-        '9-C': 52
-      }
-    },
-    {
-      class: 'Class 10',
-      sections: ['10-A', '10-B', '10-C', '10-D'],
-      teachers: {
-        '10-A': 'Mr. Amit Kumar',
-        '10-B': 'Ms. Priya Mishra',
-        '10-C': 'Mr. Suresh Sharma',
-        '10-D': 'Mr. Rajesh Verma'
-      },
-      students: {
-        '10-A': 39,
-        '10-B': 38,
-        '10-C': 35,
-        '10-D': 36
-      }
-    },
-    {
-      class: 'Class 11',
-      sections: ['11-A', '11-B'],
-      teachers: {
-        '11-A': 'Mr. Suresh Sharma',
-        '11-B': 'Ms. Priya Mishra'
-      },
-      students: {
-        '11-A': 48,
-        '11-B': 48
+        '8-A': 26,
+        '8-B': 26,
+        '8-C': 27
       }
     }
   ];
@@ -102,10 +178,10 @@ export const Classes: React.FC = () => {
       
       <div className="px-8 py-7">
         {/* Class Overview Cards */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
           {classesData.map((classItem, index) => (
             <div key={index} className="kpi-card cursor-pointer hover:translate-y-[-2px] transition-transform">
-              <div className="text-2xl font-extrabold mb-1 bg-gradient-to-br from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <div className={`text-2xl font-extrabold mb-1 bg-gradient-to-br ${classItem.color} bg-clip-text text-transparent`}>
                 {classItem.name}
               </div>
               <div className="text-xs text-slate-500">{classItem.sections} • {classItem.students}</div>
