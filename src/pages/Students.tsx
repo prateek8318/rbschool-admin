@@ -8,10 +8,15 @@ import {
   Edit, 
   Trash2, 
   Users,
-  GraduationCap,
   Mail,
   Phone,
-  Calendar
+  MoreVertical,
+  Eye,
+  TrendingUp,
+  Bell,
+  CheckCircle,
+  XCircle,
+  AlertCircle
 } from 'lucide-react';
 
 export const Students: React.FC = () => {
@@ -140,49 +145,58 @@ export const Students: React.FC = () => {
       <div className="px-6 py-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="kpi-card animate-scale-in" style={{ animationDelay: '100ms' }}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
-                <Users className="w-5 h-5" />
+          <div className="kpi-card animate-scale-in group cursor-pointer hover:scale-105" style={{ animationDelay: '100ms' }}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                <Users className="w-6 h-6" />
               </div>
-              <div>
-                <div className="text-2xl font-bold">{stats.total}</div>
-                <div className="text-xs text-slate-600">Total Students</div>
+              <div className="flex items-center gap-1 text-green-600 text-sm font-semibold">
+                <TrendingUp className="w-4 h-4" />
+                <span>12%</span>
               </div>
             </div>
+            <div className="text-3xl font-black text-slate-800 mb-1">{stats.total}</div>
+            <div className="text-sm text-slate-600 font-medium">Total Students</div>
+            <div className="text-xs text-slate-500 mt-2">+8 this month</div>
           </div>
-          <div className="kpi-card animate-scale-in" style={{ animationDelay: '200ms' }}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white">
-                <GraduationCap className="w-5 h-5" />
+          <div className="kpi-card animate-scale-in group cursor-pointer hover:scale-105" style={{ animationDelay: '200ms' }}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                <CheckCircle className="w-6 h-6" />
               </div>
-              <div>
-                <div className="text-2xl font-bold">{stats.paid}</div>
-                <div className="text-xs text-slate-600">Fee Paid</div>
+              <div className="px-2 py-1 bg-green-100 rounded-full">
+                <div className="text-xs text-green-700 font-semibold">84%</div>
               </div>
             </div>
+            <div className="text-3xl font-black text-slate-800 mb-1">{stats.paid}</div>
+            <div className="text-sm text-slate-600 font-medium">Fee Paid</div>
+            <div className="text-xs text-slate-500 mt-2">On time payments</div>
           </div>
-          <div className="kpi-card animate-scale-in" style={{ animationDelay: '300ms' }}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center text-white">
-                <Calendar className="w-5 h-5" />
+          <div className="kpi-card animate-scale-in group cursor-pointer hover:scale-105" style={{ animationDelay: '300ms' }}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center text-white shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                <AlertCircle className="w-6 h-6" />
               </div>
-              <div>
-                <div className="text-2xl font-bold">{stats.pending}</div>
-                <div className="text-xs text-slate-600">Fee Pending</div>
+              <div className="px-2 py-1 bg-amber-100 rounded-full">
+                <div className="text-xs text-amber-700 font-semibold">Pending</div>
               </div>
             </div>
+            <div className="text-3xl font-black text-slate-800 mb-1">{stats.pending}</div>
+            <div className="text-sm text-slate-600 font-medium">Fee Pending</div>
+            <div className="text-xs text-slate-500 mt-2">Due this week</div>
           </div>
-          <div className="kpi-card animate-scale-in" style={{ animationDelay: '400ms' }}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center text-white">
-                <Phone className="w-5 h-5" />
+          <div className="kpi-card animate-scale-in group cursor-pointer hover:scale-105" style={{ animationDelay: '400ms' }}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center text-white shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                <XCircle className="w-6 h-6" />
               </div>
-              <div>
-                <div className="text-2xl font-bold">{stats.overdue}</div>
-                <div className="text-xs text-slate-600">Fee Overdue</div>
+              <div className="px-2 py-1 bg-red-100 rounded-full">
+                <div className="text-xs text-red-700 font-semibold">Urgent</div>
               </div>
             </div>
+            <div className="text-3xl font-black text-slate-800 mb-1">{stats.overdue}</div>
+            <div className="text-sm text-slate-600 font-medium">Fee Overdue</div>
+            <div className="text-xs text-slate-500 mt-2">Requires attention</div>
           </div>
         </div>
 
@@ -254,15 +268,28 @@ export const Students: React.FC = () => {
                     >
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg" style={{ backgroundColor: student.color }}>
-                            {student.name.split(' ').map(n => n[0]).join('')}
+                          <div className="relative">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-lg group-hover:scale-110 transition-transform duration-200" style={{ backgroundColor: student.color }}>
+                              {student.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                            {student.fee === 'paid' && (
+                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                <CheckCircle className="w-2 h-2 text-white" />
+                              </div>
+                            )}
                           </div>
                           <div>
-                            <div className="text-sm font-semibold text-slate-800">{student.name}</div>
+                            <div className="text-sm font-semibold text-slate-800 group-hover:text-blue-600 transition-colors">{student.name}</div>
                             <div className="text-xs text-slate-500 flex items-center gap-2">
                               <Mail className="w-3 h-3" />
                               {student.email}
                             </div>
+                            {student.fee === 'overdue' && (
+                              <div className="mt-1 flex items-center gap-1 text-xs text-red-600 font-semibold">
+                                <AlertCircle className="w-3 h-3" />
+                                Payment overdue
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -282,13 +309,26 @@ export const Students: React.FC = () => {
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${getBadgeClass(student.fee)}`}>
-                          {student.fee.charAt(0).toUpperCase() + student.fee.slice(1)}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${getBadgeClass(student.fee)}`}>
+                            {student.fee === 'paid' && <CheckCircle className="w-3 h-3 mr-1" />}
+                            {student.fee === 'pending' && <AlertCircle className="w-3 h-3 mr-1" />}
+                            {student.fee === 'overdue' && <XCircle className="w-3 h-3 mr-1" />}
+                            {student.fee.charAt(0).toUpperCase() + student.fee.slice(1)}
+                          </span>
+                          {student.fee === 'overdue' && (
+                            <button className="p-1 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors">
+                              <Bell className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex gap-2">
                           <button className="w-8 h-8 rounded-xl border-none cursor-pointer flex items-center justify-center text-sm bg-sky-500/10 text-sky-600 hover:bg-sky-500/20 transition-all duration-200 group">
+                            <Eye className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                          </button>
+                          <button className="w-8 h-8 rounded-xl border-none cursor-pointer flex items-center justify-center text-sm bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 transition-all duration-200 group">
                             <Edit className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
                           </button>
                           <button 
@@ -296,6 +336,9 @@ export const Students: React.FC = () => {
                             className="w-8 h-8 rounded-xl border-none cursor-pointer flex items-center justify-center text-sm bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-all duration-200 group"
                           >
                             <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                          </button>
+                          <button className="w-8 h-8 rounded-xl border-none cursor-pointer flex items-center justify-center text-sm bg-slate-500/10 text-slate-600 hover:bg-slate-500/20 transition-all duration-200 group">
+                            <MoreVertical className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
                           </button>
                         </div>
                       </td>

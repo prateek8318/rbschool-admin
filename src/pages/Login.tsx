@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { Button } from '../components/ui/Button';
 import { GraduationCap, Lock, Mail, Eye, EyeOff, Shield, Sparkles } from 'lucide-react';
+import logoImage from '../assets/R. B. LOGO.png';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -53,13 +54,25 @@ export const Login: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/30 to-cyan-600/30" />
               <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(16,185,129,0.1)_50%,transparent_100%)]" />
               <div className="relative z-10 text-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/40 mb-8 mx-auto transform hover:scale-110 transition-all duration-500 hover:rotate-3">
-                  <GraduationCap className="w-14 h-14 text-white" />
+                <div className="w-24 h-24 mb-8 mx-auto transform hover:scale-110 transition-all duration-500 hover:rotate-3 relative">
+                  <img 
+                    src={logoImage} 
+                    alt="RB School Logo" 
+                    className="w-full h-full rounded-3xl shadow-2xl shadow-emerald-500/40 object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                  <div className="hidden w-24 h-24 bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/40">
+                    <GraduationCap className="w-14 h-14 text-white" />
+                  </div>
                 </div>
-                <h1 className="text-4xl font-black text-white mb-4 animate-fade-in-up">
-                  RB<span className="text-emerald-300">School</span>
+                <h1 className="text-3xl font-black text-white mb-4 animate-fade-in-up">
+                 RB KENDRIYA VIDYALAYA
                 </h1>
-                <p className="text-emerald-100 text-lg mb-8 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>Management System</p>
+                <p className="text-emerald-100 text-lg mb-8 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>SIDHAUT GAZIPUR</p>
                 <div className="flex items-center justify-center gap-2 text-emerald-200 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                   <Shield className="w-5 h-5" />
                   <span className="text-sm font-medium">Secure & Reliable</span>
@@ -82,8 +95,20 @@ export const Login: React.FC = () => {
               <div className="max-w-sm mx-auto">
                 {/* Logo for mobile */}
                 <div className="md:hidden flex justify-center mb-8">
-                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-xl shadow-emerald-500/30 transform hover:scale-110 transition-all duration-500">
-                    <GraduationCap className="w-10 h-10 text-white" />
+                  <div className="w-16 h-16 transform hover:scale-110 transition-all duration-500 relative">
+                    <img 
+                      src={logoImage} 
+                      alt="RB School Logo" 
+                      className="w-full h-full rounded-2xl shadow-xl shadow-emerald-500/30 object-contain"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                    <div className="hidden w-16 h-16 bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-xl shadow-emerald-500/30">
+                      <GraduationCap className="w-10 h-10 text-white" />
+                    </div>
                   </div>
                 </div>
 
