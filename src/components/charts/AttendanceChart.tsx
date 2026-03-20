@@ -58,7 +58,7 @@ export const AttendanceChart: React.FC = () => {
         borderWidth: 1,
         titleFont: {
           size: 14,
-          weight: 'bold',
+          weight: 'bold' as const,
         },
         bodyFont: {
           size: 13,
