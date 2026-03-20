@@ -102,7 +102,7 @@ export const Dashboard: React.FC = () => {
       setKpiData([
         {
           title: 'Total Students',
-          value: '1,248',
+          value: '250',
           icon: Users,
           trend: '↑ 12 this month',
           trendType: 'up',
@@ -111,7 +111,7 @@ export const Dashboard: React.FC = () => {
         },
         {
           title: 'Total Teachers',
-          value: '87',
+          value: '12',
           icon: GraduationCap,
           trend: '— No change',
           trendType: 'flat',
@@ -129,9 +129,9 @@ export const Dashboard: React.FC = () => {
         },
         {
           title: 'Fee Collected',
-          value: '₹4.2L',
+          value: '₹20k',
           icon: DollarSign,
-          trend: 'of ₹5L target',
+          trend: 'of ₹50k target',
           trendType: 'up',
           color: 'from-amber-500/12 to-yellow-600/12',
           iconColor: 'from-amber-500 to-yellow-600'
@@ -278,7 +278,7 @@ export const Dashboard: React.FC = () => {
                 <span>94.2%</span>
               </div>
             </div>
-            <div className="h-64">
+            <div className="h-130">
               <AttendanceChart />
             </div>
           </div>
