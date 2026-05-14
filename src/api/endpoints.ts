@@ -1,8 +1,9 @@
 export const endpoints = {
   auth: {
-    login: '/auth/login',
-    logout: '/auth/logout',
-    me: '/auth/me',
+    adminLogin: '/api/auth/admin/login',
+    login: '/api/auth/login',
+    logout: '/api/auth/logout',
+    me: '/api/auth/me',
   },
   students: {
     list: '/students',

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { authService } from '../api/services';
 import { Button } from '../components/ui/Button';
 import { GraduationCap, Lock, Mail, Eye, EyeOff, Shield, Sparkles } from 'lucide-react';
 import logoImage from '../assets/R. B. LOGO.png';
@@ -11,18 +12,46 @@ export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState('');
   const setAuth = useAuthStore((state) => state.setAuth);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setAuth({ id: '1', name: 'Admin', email, role: 'ADMIN' }, 'dummy-token');
+    setError('');
+
+    try {
+      const normalizedEmail = email.trim().toLowerCase();
+      const response = await authService.adminLogin({
+        email: normalizedEmail,
+        password
+      });
+
+      const role =
+        response.data.role === 'parent'
+          ? 'STUDENT'
+          : response.data.role === 'teacher'
+            ? 'TEACHER'
+            : 'ADMIN';
+
+      // Store user data in auth store
+      setAuth(
+        { 
+          id: response.data.userId, 
+          name: 'Admin', 
+          email: normalizedEmail, 
+          role
+        }, 
+        response.data.accessToken
+      );
+      
+      navigate('/', { replace: true });
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
       setIsLoading(false);
-      navigate('/dashboard');
-    }, 1500);
+    }
   };
 
   return (
@@ -180,6 +209,13 @@ export const Login: React.FC = () => {
                     {isLoading ? 'Signing in...' : 'Sign in'}
                   </Button>
                 </form>
+
+                {/* Error Display */}
+                {error && (
+                  <div className="mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-xl">
+                    <p className="text-red-200 text-sm text-center">{error}</p>
+                  </div>
+                )}
 
                 <div className="mt-8 text-center animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
                   <p className="text-emerald-200 text-sm">
