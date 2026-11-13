@@ -1,164 +1,90 @@
 import React, { useState } from 'react';
-import { Topbar } from '../components/layout/Topbar';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Megaphone, Pin, Send, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { announcementsApi } from '../api';
+import { errorMessage } from '../api/client';
+import { Button } from '../components/ui/Button';
+import { Pagination } from '../components/ui/Pagination';
+import { EmptyState } from '../components/ui/EmptyState';
+import {Field, inputClass, Page, PageHeader, Panel } from '../components/ui/Kit';
+import { chipClass } from '../lib/ui';
+import { useBatches, useInstitution } from '../hooks/useInstitution';
+import { dateTime, plural, refName, roleLabel } from '../lib/format';
+import type { Role } from '../types';
+
+const AUDIENCE_ROLES: Role[] = ['guardian', 'student', 'teacher', 'staff', 'accountant', 'admin'];
 
 export const Announcements: React.FC = () => {
-  const [formData, setFormData] = useState({
-    title: '',
-    message: '',
-    sendTo: 'All'
+  const { terms } = useInstitution();
+  const batches = useBatches();
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const [form, setForm] = useState({ title: '', body: '', roles: [] as Role[], batchIds: [] as string[], isPinned: false });
+  const list = useQuery({ queryKey: ['announcements', page], queryFn: () => announcementsApi.list({ page, limit: 10 }) });
+
+  const create = useMutation({
+    mutationFn: () => announcementsApi.create({ title: form.title, body: form.body, isPinned: form.isPinned, audience: { roles: form.roles, batchIds: form.batchIds, programIds: [] } }),
+    onSuccess: (result) => {
+      toast.success(`Posted · ${result.recipients ?? 0} people notified`);
+      setForm({ title: '', body: '', roles: [], batchIds: [], isPinned: false });
+      queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+    onError: (error) => toast.error(errorMessage(error)),
+  });
+  const remove = useMutation({
+    mutationFn: announcementsApi.remove,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['announcements'] }),
+    onError: (error) => toast.error(errorMessage(error)),
   });
 
-  const [announcements] = useState([
-    {
-      title: 'School closed — Holi',
-      message: 'School will remain closed on March 25, 2026 for Holi. Classes resume on March 26.',
-      audience: 'All users',
-      time: '2 days ago',
-      delivered: '1,248 delivered',
-      status: 'Sent'
-    },
-    {
-      title: 'Parent-Teacher Meeting',
-      message: 'PTM scheduled for March 28 at 10:00 AM. All parents are requested to attend.',
-      audience: 'Parents only',
-      time: '3 days ago',
-      delivered: '892 delivered',
-      status: 'Sent'
-    },
-    {
-      title: 'Mid-Term Schedule Released',
-      message: 'Mid-Term examination schedule for April 2026 has been published. Check the Exams section.',
-      audience: 'All users',
-      time: '5 days ago',
-      delivered: '1,248 delivered',
-      status: 'Sent'
-    }
-  ]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
-
-  const handleSendAnnouncement = () => {
-    console.log('Sending announcement:', formData);
-    // Reset form
-    setFormData({
-      title: '',
-      message: '',
-      sendTo: 'All'
-    });
-  };
+  const toggle = <T,>(list: T[], value: T) => (list.includes(value) ? list.filter((item) => item !== value) : [...list, value]);
+  const chip = chipClass;
+  const labelFor = (role: Role) => (role === 'guardian' ? plural(terms.guardian) : role === 'student' ? plural(terms.student) : role === 'teacher' ? plural(terms.teacher) : `${roleLabel[role]}s`);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Topbar 
-        title="Announcements" 
-        subtitle="Send notices to students & parents"
-        actions={
-          <button className="px-4.5 py-2.5 rounded-xl btn-primary text-sm font-semibold cursor-pointer font-inherit">
-            ➕ New Announcement
-          </button>
-        }
-      />
-      
-      <div className="px-8 py-7">
-        <div className="grid grid-cols-[1fr_1.5fr] gap-5">
-          {/* Compose Notice */}
-          <div className="table-card">
-            <h3 className="text-sm font-bold mb-4">Compose Notice</h3>
-            
-            <div className="mb-3">
-              <label className="text-xs font-semibold text-slate-500 block mb-1.5">Title</label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                placeholder="Announcement title..."
-                className="w-full px-3.5 py-2.5 border-[1.5px] border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500 bg-transparent"
-              />
-            </div>
-
-            <div className="mb-3">
-              <label className="text-xs font-semibold text-slate-500 block mb-1.5">Message</label>
-              <textarea
-                name="message"
-                value={formData.message}
-                onChange={handleInputChange}
-                placeholder="Type your message..."
-                rows={5}
-                className="w-full px-3.5 py-2.5 border-[1.5px] border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500 bg-transparent resize-none"
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="text-xs font-semibold text-slate-500 block mb-1.5">Send To</label>
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={() => setFormData(prev => ({ ...prev, sendTo: 'All' }))}
-                  className={`px-3.5 py-1.5 rounded-[20px] border-[1.5px] text-xs font-semibold cursor-pointer font-inherit transition-colors ${
-                    formData.sendTo === 'All' 
-                      ? 'border-indigo-500 bg-gradient-to-br from-blue-600 to-indigo-600 text-white' 
-                      : 'border-slate-200 bg-none text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  All
-                </button>
-                <button
-                  onClick={() => setFormData(prev => ({ ...prev, sendTo: 'Parents' }))}
-                  className={`px-3.5 py-1.5 rounded-[20px] border-[1.5px] text-xs font-semibold cursor-pointer font-inherit transition-colors ${
-                    formData.sendTo === 'Parents' 
-                      ? 'border-indigo-500 bg-gradient-to-br from-blue-600 to-indigo-600 text-white' 
-                      : 'border-slate-200 bg-none text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  Parents
-                </button>
-                <button
-                  onClick={() => setFormData(prev => ({ ...prev, sendTo: 'Teachers' }))}
-                  className={`px-3.5 py-1.5 rounded-[20px] border-[1.5px] text-xs font-semibold cursor-pointer font-inherit transition-colors ${
-                    formData.sendTo === 'Teachers' 
-                      ? 'border-indigo-500 bg-gradient-to-br from-blue-600 to-indigo-600 text-white' 
-                      : 'border-slate-200 bg-none text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  Teachers
-                </button>
+    <Page>
+      <PageHeader title="Announcements" subtitle="Notices go to the app inbox of everyone in the audience" />
+      <div className="grid lg:grid-cols-5 gap-6">
+        <Panel title="New announcement" className="lg:col-span-2 h-fit">
+          <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
+            <Field label="Title"><input className={inputClass} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required minLength={2} /></Field>
+            <Field label="Message"><textarea className={`${inputClass} min-h-32`} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} required /></Field>
+            <Field label="Who should see it?" hint="Nothing selected = everyone">
+              <div className="flex flex-wrap gap-2">
+                {AUDIENCE_ROLES.map((role) => <button type="button" key={role} className={chip(form.roles.includes(role))} onClick={() => setForm({ ...form, roles: toggle(form.roles, role) })}>{labelFor(role)}</button>)}
               </div>
-            </div>
-
-            <button
-              onClick={handleSendAnnouncement}
-              className="w-full py-3 bg-gradient-to-br from-blue-600 to-indigo-600 border-none rounded-xl text-white text-sm font-bold cursor-pointer font-inherit hover:opacity-90 transition-opacity"
-            >
-              📤 Send Announcement
-            </button>
-          </div>
-
-          {/* Recent Announcements */}
-          <div className="table-card">
-            <h3 className="text-sm font-bold mb-4">Recent Announcements</h3>
-            
-            {announcements.map((announcement, index) => (
-              <div key={index} className={`${index < announcements.length - 1 ? 'border-b border-slate-200 pb-3.5 mb-3.5' : ''}`}>
-                <div className="flex items-center justify-between mb-1.5">
-                  <strong className="text-sm font-semibold">{announcement.title}</strong>
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-[20px] bg-green-100 text-green-700">
-                    Sent
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 leading-6 mb-2">{announcement.message}</p>
-                <div className="text-xs text-slate-500">
-                  {announcement.audience} • {announcement.time} • {announcement.delivered}
-                </div>
+            </Field>
+            <Field label={`Only these ${plural(terms.batch).toLowerCase()}`} hint="Nothing selected = all">
+              <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+                {batches.data?.map((b) => <button type="button" key={b._id} className={chip(form.batchIds.includes(b._id))} onClick={() => setForm({ ...form, batchIds: toggle(form.batchIds, b._id) })}>{refName(b.programId)} · {b.name}</button>)}
               </div>
-            ))}
-          </div>
+            </Field>
+            <label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={form.isPinned} onChange={(e) => setForm({ ...form, isPinned: e.target.checked })} /> Pin to top</label>
+            <Button type="submit" fullWidth leftIcon={<Send className="w-4 h-4" />} isLoading={create.isPending}>Post & notify</Button>
+          </form>
+        </Panel>
+
+        <div className="lg:col-span-3 space-y-3 stagger">
+          {list.data?.items.length ? list.data.items.map((item) => (
+            <div key={item._id} className="glass lift rounded-2xl p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">{item.isPinned ? <Pin className="w-4 h-4" /> : <Megaphone className="w-4 h-4" />}</div>
+                  <div>
+                    <div className="font-bold text-slate-800">{item.title}</div>
+                    <div className="text-xs text-slate-500">{refName(item.createdBy)} · {dateTime(item.createdAt)} · {item.audience.roles.length ? item.audience.roles.map(labelFor).join(', ') : 'Everyone'}</div>
+                  </div>
+                </div>
+                <button className="p-2 text-slate-400 hover:text-red-600" onClick={() => remove.mutate(item._id)} title="Delete"><Trash2 className="w-4 h-4" /></button>
+              </div>
+              <p className="text-sm text-slate-600 mt-3 whitespace-pre-line">{item.body}</p>
+            </div>
+          )) : !list.isLoading && <EmptyState title="No announcements yet" description="Post a notice for parents, students or staff." />}
+          <Pagination currentPage={page} totalPages={list.data?.meta.totalPages ?? 1} onPageChange={setPage} />
         </div>
       </div>
-    </div>
+    </Page>
   );
 };

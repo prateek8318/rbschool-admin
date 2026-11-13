@@ -1,248 +1,117 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useUiStore } from '../../store/uiStore';
+import { useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { ArrowLeftRight, LogOut } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
-import { 
-  Home, 
-  Users, 
-  GraduationCap, 
-  Building2, 
-  FileText, 
-  DollarSign, 
-  Megaphone, 
-  Settings, 
-  LogOut,
-  UserCheck,
-  Sparkles,
-  Crown,
-  X
-} from 'lucide-react';
+import { authApi } from '../../api';
+import { errorMessage } from '../../api/client';
+import { roleLabel } from '../../lib/format';
+import { useNavigation, type NavItem } from './navigation';
+import { Avatar } from '../ui/Kit';
 import logoImage from '../../assets/R. B. LOGO.png';
 
-export const Sidebar: React.FC = () => {
-  const { sidebarOpen, setSidebarOpen } = useUiStore();
-  const logout = useAuthStore((state) => state.logout);
+/** Desktop sidebar (phones use the bottom tab bar instead). */
+export const Sidebar: React.FC<{ mode: 'platform' | 'institution' }> = ({ mode }) => {
+  const { logout, active, isPlatformAdmin, setActive, user, memberships } = useAuthStore();
+  const sections = useNavigation(mode);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const canSwitch = memberships.filter((m) => ['owner', 'admin', 'accountant'].includes(m.role)).length > 1;
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await authApi.logout().catch(() => undefined);
     logout();
+    queryClient.clear();
     navigate('/login');
   };
 
-  const navigation = [
-    { name: 'Dashboard', href: '/', icon: Home, description: 'Overview & Analytics', badge: 'New', color: 'from-blue-600 to-indigo-600' },
-    { name: 'Students', href: '/students', icon: Users, description: 'Student Management', count: '1,248', color: 'from-emerald-600 to-teal-600' },
-    { name: 'Teachers', href: '/teachers', icon: GraduationCap, description: 'Faculty Management', count: '87', color: 'from-purple-600 to-pink-600' },
-    { name: 'Classes', href: '/classes', icon: Building2, description: 'Class & Section', count: '24', color: 'from-amber-600 to-orange-600' },
-  ];
+  const backToPlatform = async () => {
+    try {
+      const result = await authApi.switchTo({});
+      setActive(result.accessToken, null);
+      queryClient.clear();
+      navigate('/platform');
+    } catch (error) {
+      toast.error(errorMessage(error));
+    }
+  };
 
-  const academicNav = [
-    { name: 'Attendance', href: '/attendance', icon: UserCheck, description: 'Track Attendance', percentage: '94.2%', color: 'from-green-600 to-emerald-600' },
-    { name: 'Exams', href: '/exams', icon: FileText, description: 'Exams & Results', badge: 'Active', color: 'from-blue-600 to-cyan-600' },
-    { name: 'Fees', href: '/fees', icon: DollarSign, description: 'Fee Management', amount: '₹4.2L', color: 'from-amber-600 to-yellow-600' },
-  ];
-
-  const communicationNav = [
-    { name: 'Announcements', href: '/announcements', icon: Megaphone, description: 'Notices & Updates', count: '3', color: 'from-rose-600 to-pink-600' },
-    { name: 'Settings', href: '/settings', icon: Settings, description: 'System Settings', color: 'from-slate-600 to-gray-600' },
-  ];
+  const visible = (item: NavItem) => !item.roles || (active && item.roles.includes(active.role));
 
   return (
-    <>
-      {/* Mobile overlay */}
-      <div 
-        className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden transition-opacity duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-        onClick={() => setSidebarOpen(false)}
-      />
-
-      {/* Sidebar component */}
-      <div className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-slate-900 text-white min-h-screen overflow-y-auto lg:translate-x-0 lg:static lg:flex-shrink-0 transform transition-transform duration-300 ease-in-out w-64 border-r border-slate-700 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      }`}
-      >
-        {/* Mobile close button */}
-        <button
-          onClick={() => setSidebarOpen(false)}
-          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-800 transition-colors duration-200 lg:hidden"
-          aria-label="Close sidebar"
-        >
-          <X className="w-5 h-5 text-slate-400" />
-        </button>
-
-        {/* Logo */}
-        <div className="px-4 py-6 border-b border-slate-700/50 lg:px-6 lg:py-8">
-          <div className="flex flex-col items-center gap-3 lg:gap-4">
-            <div className="relative">
-              <img 
-                src={logoImage} 
-                alt="RB School Logo" 
-                className="w-16 h-16 lg:w-20 lg:h-20 rounded-full shadow-xl shadow-blue-500/30 object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  target.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-              <div className="hidden w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xl lg:text-2xl shadow-xl shadow-blue-500/30">
-                RB
-              </div>
-              <div className="absolute -top-1 -right-1 w-3 h-3 lg:w-4 lg:h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                <Crown className="w-1.5 h-1.5 lg:w-2 lg:h-2 text-white" />
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-xs lg:text-sm font-black text-white flex items-center gap-1 lg:gap-2">RB KENDRIYA VIDYALAYA
-               {/* <span className="text-blue-400 text-xl">  </span> */}
-                <Sparkles className="w-3 h-3 lg:w-4 lg:h-4 text-yellow-400" />
-              </div>
-              <div className="text-xs lg:text-sm text-slate-500 font-medium">SIDHAUT GHAZIPUR</div>
-            </div>
+    <aside className="hidden lg:flex sticky top-0 h-screen w-[268px] shrink-0 flex-col p-3">
+      <div className="glass flex h-full flex-col rounded-3xl overflow-hidden">
+        {/* Brand */}
+        <div className="flex items-center gap-3 px-4 pt-5 pb-4">
+          <div className="relative">
+            <img src={(mode === 'institution' && active?.institution.logoUrl) || logoImage} alt="" className="w-11 h-11 rounded-2xl object-contain bg-white shadow-md ring-1 ring-slate-900/5" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white" title="Online" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold text-slate-900 truncate">{mode === 'platform' ? 'RB Education' : active?.institution.name}</div>
+            <div className="text-xs text-slate-500 truncate capitalize">{mode === 'platform' ? 'Platform admin' : active?.institution.type.replace('_', ' ')}</div>
           </div>
         </div>
 
-        {/* Main Navigation */}
-        <div className="flex-1 px-3 py-4 lg:px-4 lg:py-6 space-y-4 lg:space-y-6 overflow-y-auto">
-          <div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-3 lg:mb-4">Main Menu</div>
-            <nav className="space-y-1 lg:space-y-2">
-              {navigation.map((item) => (
-                <NavLink
-                  key={item.name}
-                  to={item.href}
-                  className={({ isActive }) =>
-                    `group flex items-center gap-3 lg:gap-4 px-3 py-2.5 lg:px-4 lg:py-3 rounded-lg lg:rounded-xl cursor-pointer transition-all duration-300 relative overflow-hidden ${
-                      isActive
-                        ? `bg-gradient-to-r ${item.color} text-white font-semibold shadow-lg shadow-blue-500/30`
-                        : 'text-slate-300 hover:bg-slate-800/50 hover:text-white hover:shadow-md'
-                    }`
-                  }
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <div className={`w-5 h-5 lg:w-6 lg:h-6 flex items-center justify-center transition-colors duration-300`}>
-                    <item.icon className="w-5 h-5 lg:w-6 lg:h-6" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm lg:text-base font-semibold truncate">{item.name}</div>
-                    <div className="text-xs text-slate-400 group-hover:text-slate-300 mt-0.5 lg:mt-1 hidden lg:block">{item.description}</div>
-                  </div>
-                  <div className="flex items-center gap-1 lg:gap-2 flex-shrink-0">
-                    {item.badge && (
-                      <span className="px-1.5 py-0.5 lg:px-2 lg:py-1 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-full animate-pulse">
-                        {item.badge}
-                      </span>
-                    )}
-                    {item.count && (
-                      <span className="px-1.5 py-0.5 lg:px-2 lg:py-1 text-xs font-bold text-slate-300 bg-slate-700 rounded-full">
-                        {item.count}
-                      </span>
-                    )}
-                    {item.name === 'Dashboard' && (
-                      <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-green-400 rounded-full animate-pulse" />
-                    )}
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
-                </NavLink>
-              ))}
-            </nav>
-          </div>
-
-          {/* Academic Navigation */}
-          <div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-3 lg:mb-4">Academic</div>
-            <nav className="space-y-1 lg:space-y-2">
-              {academicNav.map((item) => (
-                <NavLink
-                  key={item.name}
-                  to={item.href}
-                  className={({ isActive }) =>
-                    `group flex items-center gap-3 lg:gap-4 px-3 py-2.5 lg:px-4 lg:py-3 rounded-lg lg:rounded-xl cursor-pointer transition-all duration-300 relative overflow-hidden ${
-                      isActive
-                        ? `bg-gradient-to-r ${item.color} text-white font-semibold shadow-lg`
-                        : 'text-slate-300 hover:bg-slate-800/50 hover:text-white hover:shadow-md'
-                    }`
-                  }
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <div className="w-5 h-5 lg:w-6 lg:h-6 flex items-center justify-center">
-                    <item.icon className="w-5 h-5 lg:w-6 lg:h-6" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm lg:text-base font-semibold truncate">{item.name}</div>
-                    <div className="text-xs text-slate-400 group-hover:text-slate-300 mt-0.5 lg:mt-1 hidden lg:block">{item.description}</div>
-                  </div>
-                  <div className="flex items-center gap-1 lg:gap-2 flex-shrink-0">
-                    {item.badge && (
-                      <span className="px-1.5 py-0.5 lg:px-2 lg:py-1 text-xs font-bold text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-full">
-                        {item.badge}
-                      </span>
-                    )}
-                    {item.percentage && (
-                      <span className="px-1.5 py-0.5 lg:px-2 lg:py-1 text-xs font-bold text-green-400 bg-green-500/20 rounded-full">
-                        {item.percentage}
-                      </span>
-                    )}
-                    {item.amount && (
-                      <span className="px-1.5 py-0.5 lg:px-2 lg:py-1 text-xs font-bold text-amber-400 bg-amber-500/20 rounded-full">
-                        {item.amount}
-                      </span>
-                    )}
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
-                </NavLink>
-              ))}
-            </nav>
-          </div>
-
-          {/* Communication Navigation */}
-          <div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-3 lg:mb-4">Communication</div>
-            <nav className="space-y-1 lg:space-y-2">
-              {communicationNav.map((item) => (
-                <NavLink
-                  key={item.name}
-                  to={item.href}
-                  className={({ isActive }) =>
-                    `group flex items-center gap-3 lg:gap-4 px-3 py-2.5 lg:px-4 lg:py-3 rounded-lg lg:rounded-xl cursor-pointer transition-all duration-300 relative overflow-hidden ${
-                      isActive
-                        ? `bg-gradient-to-r ${item.color} text-white font-semibold shadow-lg`
-                        : 'text-slate-300 hover:bg-slate-800/50 hover:text-white hover:shadow-md'
-                    }`
-                  }
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <div className="w-5 h-5 lg:w-6 lg:h-6 flex items-center justify-center">
-                    <item.icon className="w-5 h-5 lg:w-6 lg:h-6" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm lg:text-base font-semibold truncate">{item.name}</div>
-                    <div className="text-xs text-slate-400 group-hover:text-slate-300 mt-0.5 lg:mt-1 hidden lg:block">{item.description}</div>
-                  </div>
-                  <div className="flex items-center gap-1 lg:gap-2 flex-shrink-0">
-                    {item.count && (
-                      <span className="px-1.5 py-0.5 lg:px-2 lg:py-1 text-xs font-bold text-white bg-gradient-to-r from-rose-600 to-pink-600 rounded-full animate-pulse">
-                        {item.count}
-                      </span>
-                    )}
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
-                </NavLink>
-              ))}
-            </nav>
-          </div>
-        </div>
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-5">
+          {sections.map((section) => {
+            const items = section.items.filter(visible);
+            if (!items.length) return null;
+            return (
+              <div key={section.title}>
+                <div className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{section.title}</div>
+                <div className="space-y-0.5">
+                  {items.map((item) => (
+                    <NavLink
+                      key={item.href}
+                      to={item.href}
+                      end={item.href === '/' || item.href === '/platform'}
+                      className={({ isActive }) =>
+                        `group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+                          isActive ? 'brand-gradient text-white shadow-lg shadow-indigo-600/25' : 'text-slate-600 hover:bg-white/70 hover:text-slate-900'
+                        }`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <item.icon className={`w-[18px] h-[18px] shrink-0 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-indigo-600'}`} />
+                          <span className="truncate">{item.name}</span>
+                        </>
+                      )}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </nav>
 
         {/* Footer */}
-        <div className="px-3 py-3 lg:px-4 lg:py-4 border-t border-slate-700/50">
-          <button
-            onClick={handleLogout}
-            className="group flex items-center gap-3 lg:gap-4 px-3 py-2.5 lg:px-4 lg:py-3 rounded-lg lg:rounded-xl text-slate-400 text-sm lg:text-base font-semibold hover:bg-red-500/10 hover:text-red-400 transition-all duration-300 w-full relative overflow-hidden"
-          >
-            <LogOut className="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform duration-300" />
-            <span>Logout</span>
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
-          </button>
+        <div className="border-t border-slate-900/[0.06] p-3 space-y-1">
+          {isPlatformAdmin && mode === 'institution' && (
+            <button onClick={backToPlatform} className="press w-full flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50/80">
+              <ArrowLeftRight className="w-[18px] h-[18px]" /> Back to platform
+            </button>
+          )}
+          {canSwitch && mode === 'institution' && (
+            <button onClick={() => navigate('/select')} className="press w-full flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-white/70">
+              <ArrowLeftRight className="w-[18px] h-[18px] text-slate-400" /> Switch institution
+            </button>
+          )}
+          <div className="flex items-center gap-3 rounded-2xl bg-white/60 ring-1 ring-slate-900/5 px-3 py-2.5">
+            <Avatar name={user?.name} />
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-medium text-slate-900 truncate">{user?.name}</div>
+              <div className="text-xs text-slate-500 truncate">{mode === 'platform' ? 'Super admin' : roleLabel[active?.role ?? '']}</div>
+            </div>
+            <button onClick={handleLogout} className="press p-1.5 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600" title="Log out" aria-label="Log out">
+              <LogOut className="w-[18px] h-[18px]" />
+            </button>
+          </div>
         </div>
       </div>
-    </>
+    </aside>
   );
 };

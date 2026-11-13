@@ -7,17 +7,17 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className = '', children, variant = 'default', hover = true, ...props }, ref) => {
+  ({ className = '', children, variant = 'default', hover = false, ...props }, ref) => {
     const variants = {
       default: 'card',
-      glass: 'glass',
-      gradient: 'bg-gradient-to-br from-white to-slate-50 border border-slate-200/30'
+      glass: 'card',
+      gradient: 'card'
     };
     
     return (
       <div
         ref={ref}
-        className={`${variants[variant]} ${hover ? 'hover:shadow-lg hover:scale-[1.02]' : ''} transition-all duration-300 ${className}`}
+        className={`${variants[variant]} ${hover ? 'hover:shadow-md' : ''} transition-shadow ${className}`}
         {...props}
       >
         {children}

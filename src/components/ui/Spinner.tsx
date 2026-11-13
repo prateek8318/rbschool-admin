@@ -5,27 +5,18 @@ interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
   fullScreen?: boolean;
+  label?: string;
 }
 
-export const Spinner: React.FC<SpinnerProps> = ({ size = 'md', className = '', fullScreen = false }) => {
-  const sizes = {
-    sm: 'w-4 h-4',
-    md: 'w-8 h-8',
-    lg: 'w-12 h-12',
-    xl: 'w-16 h-16',
-  };
+const sizes = { sm: 'w-4 h-4', md: 'w-6 h-6', lg: 'w-8 h-8', xl: 'w-10 h-10' };
 
+export const Spinner: React.FC<SpinnerProps> = ({ size = 'md', className = '', fullScreen = false, label }) => {
   const spinner = (
-    <Loader2 className={`animate-spin text-blue-600 ${sizes[size]} ${className}`} />
+    <div className="flex flex-col items-center gap-3">
+      <Loader2 className={`animate-spin text-indigo-600 ${sizes[size]} ${className}`} />
+      {label && <span className="text-sm text-slate-500">{label}</span>}
+    </div>
   );
-
-  if (fullScreen) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
-        {spinner}
-      </div>
-    );
-  }
-
+  if (fullScreen) return <div className="min-h-[60vh] flex items-center justify-center">{spinner}</div>;
   return <div className="flex justify-center">{spinner}</div>;
 };
