@@ -3,17 +3,9 @@ import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import type { Role } from '../types';
 
-interface RoleGuardProps {
-  children: React.ReactNode;
-  allowedRoles: Role[];
-}
-
-export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) => {
-  const user = useAuthStore((state) => state.user);
-
-  if (!user || !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
-  }
-
+/** Restricts a page to some institution roles (e.g. accountants only see fees). */
+export const RoleGuard: React.FC<{ children: React.ReactNode; allowedRoles: Role[] }> = ({ children, allowedRoles }) => {
+  const role = useAuthStore((state) => state.active?.role);
+  if (!role || !allowedRoles.includes(role)) return <Navigate to="/" replace />;
   return <>{children}</>;
 };

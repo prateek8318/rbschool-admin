@@ -1,179 +1,169 @@
-import React from 'react';
-import { Bell, Search, Settings, User, LogOut, ChevronDown, HelpCircle, Zap, Crown, Star } from 'lucide-react';
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Bell, ChevronDown, KeyRound, LogOut } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { authApi, notificationsApi } from '../../api';
+import { errorMessage } from '../../api/client';
+import { useAuthStore } from '../../store/authStore';
+import { dateTime, roleLabel } from '../../lib/format';
+import { Modal } from '../ui/Modal';
+import { Button } from '../ui/Button';
+import { Avatar, Field, inputClass } from '../ui/Kit';
+import { useNavigation } from './navigation';
+import logoImage from '../../assets/R. B. LOGO.png';
 
-interface TopbarProps {
-  title: string;
-  subtitle?: string;
-  actions?: React.ReactNode;
-}
+/** Top bar: menu button (mobile), current section, notifications and profile menu. */
+export const Topbar: React.FC<{ mode: 'platform' | 'institution' }> = ({ mode }) => {
+  const { user, active, logout } = useAuthStore();
+  const [open, setOpen] = useState<'notifications' | 'profile' | null>(null);
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const sections = useNavigation(mode);
 
-export const Topbar: React.FC<TopbarProps> = ({ title, subtitle, actions }) => {
-  const [searchOpen, setSearchOpen] = React.useState(false);
-  const [notificationsOpen, setNotificationsOpen] = React.useState(false);
-  const [profileOpen, setProfileOpen] = React.useState(false);
+  const current = sections
+    .flatMap((section) => section.items.map((item) => ({ ...item, section: section.title })))
+    .find((item) => (item.href === '/' || item.href === '/platform' ? location.pathname === item.href : location.pathname.startsWith(item.href)));
 
-  const notifications = [
-    { id: 1, title: 'New student registration', description: 'Aarav Kumar joined Class 9-A', time: '2m ago', type: 'success' },
-    { id: 2, title: 'Fee payment received', description: '₹12,000 from Priya Singh', time: '1h ago', type: 'success' },
-    { id: 3, title: 'Exam results published', description: 'Class 10-B results are available', time: '3h ago', type: 'info' },
-  ];
+  const inInstitution = mode === 'institution' && Boolean(active);
+  const unread = useQuery({ queryKey: ['unread'], queryFn: notificationsApi.unreadCount, enabled: inInstitution, refetchInterval: 60_000 });
+  const list = useQuery({ queryKey: ['notifications'], queryFn: () => notificationsApi.list({ limit: 8 }), enabled: inInstitution && open === 'notifications' });
+  const readAll = useMutation({
+    mutationFn: notificationsApi.readAll,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unread'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+
+  const signOut = async () => {
+    await authApi.logout().catch(() => undefined);
+    logout();
+    queryClient.clear();
+    navigate('/login');
+  };
+
+  const unreadCount = unread.data?.unread ?? 0;
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-18 items-center justify-between bg-white/95 backdrop-blur-xl px-6 border-b border-slate-200/50 shadow-sm">
-        <div className="flex items-center gap-4">
-          {/* Remove hamburger from here since Header already has it */}
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-blue-600/10 to-indigo-600/10">
-              <div className="w-5 h-5 bg-gradient-to-br from-blue-600 to-indigo-600 rounded" />
-            </div>
-            <div>
-              <h2 className="text-xl font-black text-slate-800">{title}</h2>
-              {subtitle && <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>}
-            </div>
-          </div>
+      <header className="sticky top-0 z-30 h-16 flex items-center justify-between gap-4 glass-bar border-b border-white/60 lg:border-transparent lg:bg-transparent lg:backdrop-blur-0 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-3 min-w-0">
+          <img src={(mode === 'institution' && active?.institution.logoUrl) || logoImage} alt="" className="lg:hidden w-9 h-9 rounded-xl object-contain bg-white shadow ring-1 ring-slate-900/5" />
+          <nav className="flex items-center gap-2 text-sm min-w-0">
+            <span className="text-slate-400 hidden sm:inline truncate">{current?.section ?? ''}</span>
+            {current?.section && <span className="text-slate-300 hidden sm:inline">/</span>}
+            <span className="font-semibold lg:font-medium text-base lg:text-sm text-slate-900 truncate">{current?.name ?? ''}</span>
+          </nav>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Search Bar */}
-          <div className="relative">
-            <button
-              onClick={() => setSearchOpen(!searchOpen)}
-              className="p-2.5 text-slate-600 rounded-xl hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 hover:scale-105"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-            {searchOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 p-4 animate-fade-in">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search students, teachers, classes..."
-                    className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    autoFocus
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {actions}
-
-          {/* Quick Actions */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/20">
-            <Zap className="w-4 h-4 text-amber-600" />
-            <span className="text-xs font-semibold text-amber-700">Quick Actions</span>
-          </div>
-
-          {/* Notifications */}
-          <div className="relative">
-            <button
-              onClick={() => setNotificationsOpen(!notificationsOpen)}
-              className="relative p-2.5 text-slate-600 rounded-xl hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 hover:scale-105"
-            >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white animate-pulse" />
-            </button>
-            {notificationsOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 animate-fade-in">
-                <div className="p-4 border-b border-slate-200">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-slate-800">Notifications</h3>
-                    <button className="text-xs text-blue-600 hover:text-blue-700">Mark all read</button>
+        <div className="flex items-center gap-1">
+          {inInstitution && (
+            <div className="relative">
+              <button
+                onClick={() => setOpen(open === 'notifications' ? null : 'notifications')}
+                className="press relative p-2.5 rounded-xl text-slate-500 hover:bg-white/70 hover:text-slate-700"
+                aria-label="Notifications"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-semibold flex items-center justify-center ring-2 ring-white">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              {open === 'notifications' && (
+                <div className="absolute right-0 top-full mt-2 w-[22rem] max-w-[calc(100vw-2rem)] glass-strong rounded-2xl z-40 animate-pop-in overflow-hidden">
+                  <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-slate-900">Notifications</h3>
+                    {unreadCount > 0 && (
+                      <button className="text-xs font-medium text-indigo-600 hover:text-indigo-700" onClick={() => readAll.mutate()}>
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
+                    {list.data?.items.length ? (
+                      list.data.items.map((item) => (
+                        <div key={item._id} className="px-4 py-3 flex gap-3">
+                          <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${item.readAt ? 'bg-transparent' : 'bg-indigo-500'}`} />
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium text-slate-900">{item.title}</div>
+                            <div className="text-xs text-slate-500 mt-0.5">{item.body}</div>
+                            <div className="text-[11px] text-slate-400 mt-1">{dateTime(item.createdAt)}</div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-4 py-10 text-center text-sm text-slate-500">{list.isLoading ? 'Loading…' : "You're all caught up"}</div>
+                    )}
                   </div>
                 </div>
-                <div className="max-h-96 overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <div key={notification.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-100 last:border-b-0">
-                      <div className="flex items-start gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          notification.type === 'success' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
-                        }`}>
-                          <Star className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-semibold text-slate-800">{notification.title}</div>
-                          <div className="text-xs text-slate-500 mt-1">{notification.description}</div>
-                          <div className="text-xs text-slate-400 mt-2">{notification.time}</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="p-4 border-t border-slate-200">
-                  <button className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-semibold">View all notifications</button>
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
-          {/* Profile */}
           <div className="relative">
-            <button
-              onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-            >
-              <div className="relative">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-sm font-bold text-white shadow-lg">
-                  VS
-                </div>
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                  <Crown className="w-1.5 h-1.5 text-white" />
-                </div>
-              </div>
-              <ChevronDown className="w-4 h-4 text-slate-400" />
+            <button onClick={() => setOpen(open === 'profile' ? null : 'profile')} className="press flex items-center gap-2 rounded-xl p-1.5 hover:bg-white/70">
+              <Avatar name={user?.name} />
+              <ChevronDown className="w-4 h-4 text-slate-400 hidden sm:block" />
             </button>
-            {profileOpen && (
-              <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 animate-fade-in">
-                <div className="p-4 border-b border-slate-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-sm font-bold text-white">
-                      VS
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-slate-800">Vinod Srivastava</div>
-                      <div className="text-xs text-slate-500">Administrator</div>
-                    </div>
-                  </div>
+            {open === 'profile' && (
+              <div className="absolute right-0 top-full mt-2 w-60 glass-strong rounded-2xl z-40 py-1 animate-pop-in overflow-hidden">
+                <div className="px-4 py-3 border-b border-slate-100">
+                  <div className="text-sm font-medium text-slate-900 truncate">{user?.name}</div>
+                  <div className="text-xs text-slate-500 truncate">{user?.email ?? user?.phone}</div>
+                  <div className="text-xs text-slate-400 mt-0.5">{mode === 'platform' ? 'Super admin' : `${roleLabel[active?.role ?? '']} · ${active?.institution.name}`}</div>
                 </div>
-                <div className="py-2">
-                  <button className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-3">
-                    <User className="w-4 h-4 text-slate-400" />
-                    Profile
-                  </button>
-                  <button className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-3">
-                    <Settings className="w-4 h-4 text-slate-400" />
-                    Settings
-                  </button>
-                  <button className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-3">
-                    <HelpCircle className="w-4 h-4 text-slate-400" />
-                    Help & Support
-                  </button>
-                </div>
-                <div className="border-t border-slate-200 p-2">
-                  <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3 rounded-lg">
-                    <LogOut className="w-4 h-4" />
-                    Logout
-                  </button>
-                </div>
+                <button onClick={() => { setOpen(null); setPasswordOpen(true); }} className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3">
+                  <KeyRound className="w-4 h-4 text-slate-400" /> Change password
+                </button>
+                <button onClick={signOut} className="w-full px-4 py-2 text-left text-sm text-rose-600 hover:bg-rose-50 flex items-center gap-3">
+                  <LogOut className="w-4 h-4" /> Log out
+                </button>
               </div>
             )}
           </div>
         </div>
       </header>
-      
-      {/* Overlay for dropdowns */}
-      {(searchOpen || notificationsOpen || profileOpen) && (
-        <div 
-          className="fixed inset-0 z-30 bg-black/10 backdrop-blur-sm"
-          onClick={() => {
-            setSearchOpen(false);
-            setNotificationsOpen(false);
-            setProfileOpen(false);
-          }}
-        />
-      )}
+      {open && <div className="fixed inset-0 z-20" onClick={() => setOpen(null)} />}
+      {passwordOpen && <ChangePasswordModal onClose={() => setPasswordOpen(false)} />}
     </>
+  );
+};
+
+const ChangePasswordModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const mutation = useMutation({
+    mutationFn: () => authApi.changePassword(current, next),
+    onSuccess: () => {
+      toast.success('Password changed. Other devices have been signed out.');
+      onClose();
+    },
+    onError: (error) => toast.error(errorMessage(error)),
+  });
+  const mismatch = confirm.length > 0 && confirm !== next;
+  return (
+    <Modal isOpen onClose={onClose} title="Change password" maxWidth="md">
+      <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (!mismatch) mutation.mutate(); }}>
+        <Field label="Current password">
+          <input type="password" className={inputClass} value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" required />
+        </Field>
+        <Field label="New password" hint="At least 8 characters">
+          <input type="password" className={inputClass} value={next} onChange={(e) => setNext(e.target.value)} minLength={8} autoComplete="new-password" required />
+        </Field>
+        <Field label="Confirm new password" hint={mismatch ? 'Passwords do not match' : undefined}>
+          <input type="password" className={inputClass} value={confirm} onChange={(e) => setConfirm(e.target.value)} minLength={8} autoComplete="new-password" required />
+        </Field>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button type="submit" isLoading={mutation.isPending} disabled={mismatch}>Update password</Button>
+        </div>
+      </form>
+    </Modal>
   );
 };

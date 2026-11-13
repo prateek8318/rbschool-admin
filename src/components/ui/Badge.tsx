@@ -25,7 +25,7 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'default', size = 'md', 
 
   return (
     <span
-      className={`inline-flex items-center font-semibold rounded-full border ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center font-medium rounded-full border ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {dot && (

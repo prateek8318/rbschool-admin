@@ -1,0 +1,14 @@
+{
+  "name": "RB Education Admin",
+  "short_name": "RB Admin",
+  "description": "Admin panel for schools, colleges and coaching institutes",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef1f8",
+  "theme_color": "#4f46e5",
+  "icons": [
+    { "src": "/R.%20B.%20LOGO.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

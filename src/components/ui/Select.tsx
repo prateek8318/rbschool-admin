@@ -31,10 +31,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
           className={`
-            block w-full rounded-xl border-slate-300 bg-white shadow-sm
-            transition-colors focus:border-blue-500 focus:ring-blue-500 sm:text-sm
+            input-field px-3
             disabled:opacity-50 disabled:bg-slate-50 disabled:cursor-not-allowed
-            ${error ? 'border-red-300 text-red-900 focus:border-red-500 focus:ring-red-500' : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'}
+            ${error ? 'border-rose-300 text-rose-900' : ''}
             ${className}
           `}
           {...props}

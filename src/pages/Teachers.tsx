@@ -1,347 +1,338 @@
-import React, { useState, useEffect } from 'react';
-import { Topbar } from '../components/layout/Topbar';
-import { 
-  Search, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Mail,
-  Phone,
-  GraduationCap,
-  Users,
-  Calendar,
-  Award,
-  BookOpen
-} from 'lucide-react';
+import React, { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { BadgeCheck, Clock, Plus, Search, ShieldBan, ShieldCheck } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { staffApi } from '../api';
+import { errorMessage } from '../api/client';
+import { Button } from '../components/ui/Button';
+import { Modal } from '../components/ui/Modal';
+import { Table } from '../components/ui/Table';
+import { Pagination } from '../components/ui/Pagination';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import {CredentialsDialog, Field, inputClass, Page, PageHeader, StatusBadge, PersonCell, ErrorState } from '../components/ui/Kit';
+import { chipClass } from '../lib/ui';
+import { useInstitution, useSubjects } from '../hooks/useInstitution';
+import { useAuthStore } from '../store/authStore';
+import { dateTime, plural, refName, roleLabel } from '../lib/format';
+import type { AccessInfo, Credential, StaffMember } from '../types';
 
-export const Teachers: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [teachers, setTeachers] = useState<{
-    name: string;
-    initials: string;
-    email: string;
-    subject: string;
-    classes: string;
-    experience: string;
-    status: 'Active' | 'On Leave' | 'Inactive';
-    color: string;
-    phone?: string;
-    joinDate?: string;
-    qualification?: string;
-  }[]>([]);
-  const [stats, setStats] = useState({
-    total: 0,
-    active: 0,
-    onLeave: 0,
-    inactive: 0
-  });
+const STAFF_ROLES = ['teacher', 'accountant', 'staff', 'admin'] as const;
 
-  useEffect(() => {
-    // Simulate data loading
-    setTimeout(() => {
-      const loadedTeachers = [
-        {
-          name: 'Mr. Suresh Sharma',
-          initials: 'SS',
-          email: 'suresh@rbschool.in',
-          subject: 'Mathematics',
-          classes: '9-A, 10-B, 8-A',
-          experience: '9 years',
-          status: 'Active' as const,
-          color: '#6366F1',
-          phone: '+91 98765 43210',
-          joinDate: '2015-06-15',
-          qualification: 'M.Sc. Mathematics'
-        },
-        {
-          name: 'Ms. Priya Mishra',
-          initials: 'PM',
-          email: 'priya@rbschool.in',
-          subject: 'Science',
-          classes: '9-A, 9-B, 8-B',
-          experience: '6 years',
-          status: 'Active' as const,
-          color: '#10B981',
-          phone: '+91 98765 43211',
-          joinDate: '2018-07-20',
-          qualification: 'M.Sc. Physics'
-        },
-        {
-          name: 'Mr. Rajesh Verma',
-          initials: 'RV',
-          email: 'rajesh@rbschool.in',
-          subject: 'English',
-          classes: '10-A, 10-B, 9-C',
-          experience: '12 years',
-          status: 'On Leave' as const,
-          color: '#F59E0B',
-          phone: '+91 98765 43212',
-          joinDate: '2012-04-10',
-          qualification: 'M.A. English'
-        },
-        {
-          name: 'Mrs. Anjali Singh',
-          initials: 'AS',
-          email: 'anjali@rbschool.in',
-          subject: 'Hindi',
-          classes: '8-A, 8-B, 9-A',
-          experience: '8 years',
-          status: 'Active' as const,
-          color: '#8B5CF6',
-          phone: '+91 98765 43213',
-          joinDate: '2016-08-25',
-          qualification: 'M.A. Hindi'
-        },
-        {
-          name: 'Mr. Amit Kumar',
-          initials: 'AK',
-          email: 'amit@rbschool.in',
-          subject: 'Social Studies',
-          classes: '10-A, 10-B, 9-C',
-          experience: '15 years',
-          status: 'Active' as const,
-          color: '#0EA5E9',
-          phone: '+91 98765 43214',
-          joinDate: '2009-03-15',
-          qualification: 'M.A. History'
-        },
-        {
-          name: 'Ms. Kavita Reddy',
-          initials: 'KR',
-          email: 'kavita@rbschool.in',
-          subject: 'Computer Science',
-          classes: '9-A, 9-B, 10-A',
-          experience: '5 years',
-          status: 'Active' as const,
-          color: '#EC4899',
-          phone: '+91 98765 43215',
-          joinDate: '2019-06-01',
-          qualification: 'B.Tech. CSE'
-        }
-      ];
-
-      setTeachers(loadedTeachers);
-      setStats({
-        total: loadedTeachers.length,
-        active: loadedTeachers.filter(t => t.status === 'Active').length,
-        onLeave: loadedTeachers.filter(t => t.status === 'On Leave').length,
-        inactive: loadedTeachers.filter(t => t.status === 'On Leave').length
-      });
-      setIsLoading(false);
-    }, 1000);
-  }, []);
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Active':
-        return 'badge-success';
-      case 'On Leave':
-        return 'badge-warning';
-      case 'Inactive':
-        return 'badge-error';
-      default:
-        return '';
-    }
-  };
-
-  const filteredTeachers = teachers.filter(teacher => 
-    teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    teacher.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    teacher.email.toLowerCase().includes(searchTerm.toLowerCase())
+export const AccessBadge: React.FC<{ access?: AccessInfo | null }> = ({ access }) =>
+  access?.phoneVerified ? (
+    <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700" title={`Last login ${dateTime(access.lastLoginAt)}`}>
+      <BadgeCheck className="w-4 h-4" /> Verified
+    </span>
+  ) : access?.lastLoginAt ? (
+    <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700">
+      <BadgeCheck className="w-4 h-4" /> Logged in
+    </span>
+  ) : (
+    <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
+      <Clock className="w-4 h-4" /> Not logged in yet
+    </span>
   );
 
-  const handleDeleteTeacher = (email: string) => {
-    if (confirm('Are you sure you want to remove this teacher?')) {
-      const teacherToDelete = teachers.find(t => t.email === email);
-      setTeachers(teachers.filter(t => t.email !== email));
-      if (teacherToDelete) {
-        setStats(prev => ({
-          ...prev,
-          total: prev.total - 1,
-          [teacherToDelete.status.toLowerCase().replace(' ', '')]: prev[teacherToDelete.status.toLowerCase().replace(' ', '') as keyof typeof prev] - 1
-        }));
-      }
-    }
-  };
+export const Teachers: React.FC = () => {
+  const { terms } = useInstitution();
+  const [filters, setFilters] = useState({ page: 1, search: '', role: '', status: 'active' });
+  const [adding, setAdding] = useState(false);
+  const [selected, setSelected] = useState<StaffMember | null>(null);
+  const [credentials, setCredentials] = useState<Credential[]>([]);
+  const queryClient = useQueryClient();
+
+  const params = { page: filters.page, limit: 25, search: filters.search || undefined, role: filters.role || undefined, status: filters.status };
+  const list = useQuery({ queryKey: ['staff', params], queryFn: () => staffApi.list(params) });
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ['staff'] });
 
   return (
-    <div className="min-h-screen bg-pattern">
-      <Topbar 
-        title="Teachers" 
-        subtitle={`${stats.total} teaching staff`}
-        actions={
-          <button className="btn-primary flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold">
-            <Plus className="w-4 h-4" />
-            <span>Add Teacher</span>
-          </button>
-        }
+    <Page>
+      <PageHeader
+        title={`${plural(terms.teacher)} & Staff`}
+        subtitle="Only people you add here can sign in to the app — with their mobile number (OTP)"
+        actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setAdding(true)}>Add staff member</Button>}
       />
-      
-      <div className="px-6 py-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="kpi-card animate-scale-in" style={{ animationDelay: '100ms' }}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
-                <Users className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold">{stats.total}</div>
-                <div className="text-xs text-slate-600">Total Teachers</div>
-              </div>
-            </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input className={`${inputClass} pl-9`} placeholder="Search name, phone, employee code" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })} />
+        </div>
+        <select className={`${inputClass} sm:w-44`} value={filters.role} onChange={(e) => setFilters({ ...filters, role: e.target.value, page: 1 })}>
+          <option value="">All roles</option>
+          {STAFF_ROLES.map((role) => (
+            <option key={role} value={role}>{roleLabel[role]}</option>
+          ))}
+        </select>
+        <select className={`${inputClass} sm:w-40`} value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}>
+          <option value="active">Active</option>
+          <option value="inactive">Blocked</option>
+        </select>
+      </div>
+
+      {list.error && <ErrorState error={list.error} onRetry={() => list.refetch()} />}
+      <Table
+        data={list.data?.items ?? []}
+        isLoading={list.isLoading}
+        keyExtractor={(row) => row._id}
+        onRowClick={setSelected}
+        columns={[
+          {
+            header: 'Name',
+            accessorKey: 'name',
+            cell: (row) => (
+              <PersonCell name={row.name} sub={<>{row.designation ?? ''}{row.employeeCode ? ` · ${row.employeeCode}` : ''}</>} />
+            ),
+          },
+          { header: 'Mobile', accessorKey: 'phone' },
+          { header: 'Role', accessorKey: 'roles', cell: (row) => row.roles.map((role) => roleLabel[role]).join(', ') || '—' },
+          { header: 'Subjects', accessorKey: 'subjectIds', cell: (row) => row.subjectIds.map(refName).join(', ') || '—' },
+          { header: 'App access', accessorKey: 'access', cell: (row) => <AccessBadge access={row.access} /> },
+          { header: 'Status', accessorKey: 'status', cell: (row) => <StatusBadge status={row.status === 'active' ? 'active' : 'blocked'} /> },
+        ]}
+      />
+      <Pagination currentPage={filters.page} totalPages={list.data?.meta.totalPages ?? 1} onPageChange={(page) => setFilters({ ...filters, page })} />
+
+      {adding && (
+        <StaffForm
+          onClose={() => setAdding(false)}
+          onSaved={(credential) => {
+            setAdding(false);
+            if (credential) setCredentials([credential]);
+            else toast.success('Added. They can log in with their existing account.');
+            refresh();
+          }}
+        />
+      )}
+      {selected && <StaffDetails staff={selected} onClose={() => setSelected(null)} onChanged={refresh} />}
+      <CredentialsDialog credentials={credentials} onClose={() => setCredentials([])} />
+    </Page>
+  );
+};
+
+const StaffForm: React.FC<{ staff?: StaffMember; onClose: () => void; onSaved: (credential: Credential | null) => void }> = ({ staff, onClose, onSaved }) => {
+  const subjects = useSubjects();
+  const ownerView = useAuthStore((state) => state.active?.role === 'owner');
+  const [form, setForm] = useState({
+    name: staff?.name ?? '',
+    phone: staff?.phone ?? '',
+    email: staff?.email ?? '',
+    role: 'teacher' as (typeof STAFF_ROLES)[number],
+    employeeCode: staff?.employeeCode ?? '',
+    designation: staff?.designation ?? '',
+    department: staff?.department ?? '',
+    qualification: staff?.qualification ?? '',
+    experienceYears: String(staff?.experienceYears ?? ''),
+    joiningDate: staff?.joiningDate ?? '',
+    subjectIds: (staff?.subjectIds ?? []).map((s) => (typeof s === 'string' ? s : s._id)),
+  });
+  const set = (key: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm({ ...form, [key]: event.target.value });
+
+  const body = () => ({
+    name: form.name,
+    email: form.email || undefined,
+    employeeCode: form.employeeCode || undefined,
+    designation: form.designation || undefined,
+    department: form.department || undefined,
+    qualification: form.qualification || undefined,
+    experienceYears: form.experienceYears ? Number(form.experienceYears) : undefined,
+    joiningDate: form.joiningDate || undefined,
+    subjectIds: form.subjectIds,
+  });
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (staff) {
+        await staffApi.update(staff._id, body());
+        return null;
+      }
+      return (await staffApi.create({ ...body(), phone: form.phone, role: form.role })).credential;
+    },
+    onSuccess: (credential) => {
+      toast.success(staff ? 'Saved' : `${form.name} added`);
+      onSaved(credential);
+    },
+    onError: (error) => toast.error(errorMessage(error)),
+  });
+
+  return (
+    <Modal isOpen onClose={onClose} title={staff ? `Edit ${staff.name}` : 'Add staff member'} maxWidth="2xl">
+      <form
+        className="space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          mutation.mutate();
+        }}
+      >
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Field label="Full name">
+            <input className={inputClass} value={form.name} onChange={set('name')} required minLength={2} />
+          </Field>
+          <Field label="Mobile number" hint={staff ? 'Mobile is their login and cannot be changed here' : 'They will log in with this number (OTP)'}>
+            <input className={inputClass} value={form.phone} onChange={set('phone')} required disabled={Boolean(staff)} inputMode="tel" />
+          </Field>
+          {!staff && (
+            <Field label="Role">
+              <select className={inputClass} value={form.role} onChange={set('role')}>
+                {STAFF_ROLES.filter((role) => role !== 'admin' || ownerView).map((role) => (
+                  <option key={role} value={role}>{roleLabel[role]}</option>
+                ))}
+              </select>
+            </Field>
+          )}
+          <Field label="Email (optional)">
+            <input type="email" className={inputClass} value={form.email} onChange={set('email')} />
+          </Field>
+          <Field label="Employee code">
+            <input className={inputClass} value={form.employeeCode} onChange={set('employeeCode')} />
+          </Field>
+          <Field label="Designation" hint="e.g. PGT, Lecturer, Clerk">
+            <input className={inputClass} value={form.designation} onChange={set('designation')} />
+          </Field>
+          <Field label="Department">
+            <input className={inputClass} value={form.department} onChange={set('department')} />
+          </Field>
+          <Field label="Qualification">
+            <input className={inputClass} value={form.qualification} onChange={set('qualification')} />
+          </Field>
+          <Field label="Experience (years)">
+            <input type="number" min={0} className={inputClass} value={form.experienceYears} onChange={set('experienceYears')} />
+          </Field>
+          <Field label="Joining date">
+            <input type="date" className={inputClass} value={form.joiningDate} onChange={set('joiningDate')} />
+          </Field>
+        </div>
+        <Field label="Subjects">
+          <div className="flex flex-wrap gap-2">
+            {subjects.data?.length ? (
+              subjects.data.map((subject) => {
+                const on = form.subjectIds.includes(subject._id);
+                return (
+                  <button
+                    type="button"
+                    key={subject._id}
+                    onClick={() => setForm({ ...form, subjectIds: on ? form.subjectIds.filter((id) => id !== subject._id) : [...form.subjectIds, subject._id] })}
+                    className={chipClass(on)}
+                  >
+                    {subject.name}
+                  </button>
+                );
+              })
+            ) : (
+              <span className="text-xs text-slate-500">Add subjects in Classes first</span>
+            )}
           </div>
-          <div className="kpi-card animate-scale-in" style={{ animationDelay: '200ms' }}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white">
-                <GraduationCap className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold">{stats.active}</div>
-                <div className="text-xs text-slate-600">Active</div>
-              </div>
+        </Field>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button type="submit" isLoading={mutation.isPending}>Save</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
+
+const StaffDetails: React.FC<{ staff: StaffMember; onClose: () => void; onChanged: () => void }> = ({ staff, onClose, onChanged }) => {
+  const ownerView = useAuthStore((state) => state.active?.role === 'owner');
+  const details = useQuery({ queryKey: ['staff-member', staff._id], queryFn: () => staffApi.get(staff._id) });
+  const [editing, setEditing] = useState(false);
+  const [confirm, setConfirm] = useState(false);
+  const [roles, setRoles] = useState<string[]>(staff.roles.filter((role) => role !== 'owner'));
+  const isOwner = staff.roles.includes('owner');
+
+  const done = (message: string) => {
+    toast.success(message);
+    onChanged();
+    onClose();
+  };
+  const saveRoles = useMutation({ mutationFn: () => staffApi.setRoles(staff._id, roles), onSuccess: () => done('Roles updated'), onError: (e) => toast.error(errorMessage(e)) });
+  const block = useMutation({ mutationFn: () => staffApi.deactivate(staff._id), onSuccess: () => done('Access blocked'), onError: (e) => toast.error(errorMessage(e)) });
+  const unblock = useMutation({ mutationFn: () => staffApi.activate(staff._id), onSuccess: () => done('Access restored'), onError: (e) => toast.error(errorMessage(e)) });
+
+  if (editing) return <StaffForm staff={staff} onClose={() => setEditing(false)} onSaved={() => { onChanged(); onClose(); }} />;
+
+  return (
+    <Modal isOpen onClose={onClose} title={staff.name} maxWidth="2xl">
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+          {[
+            ['Mobile', staff.phone],
+            ['Email', staff.email],
+            ['Designation', staff.designation],
+            ['Department', staff.department],
+            ['Qualification', staff.qualification],
+            ['Experience', staff.experienceYears != null ? `${staff.experienceYears} yrs` : undefined],
+          ].map(([label, value]) => (
+            <div key={label}>
+              <div className="text-xs text-slate-500">{label}</div>
+              <div className="font-semibold text-slate-800">{value || '—'}</div>
             </div>
+          ))}
+          <div>
+            <div className="text-xs text-slate-500">App access</div>
+            <AccessBadge access={staff.access} />
           </div>
-          <div className="kpi-card animate-scale-in" style={{ animationDelay: '300ms' }}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center text-white">
-                <Calendar className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold">{stats.onLeave}</div>
-                <div className="text-xs text-slate-600">On Leave</div>
-              </div>
-            </div>
-          </div>
-          <div className="kpi-card animate-scale-in" style={{ animationDelay: '400ms' }}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white">
-                <Award className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold">{stats.inactive}</div>
-                <div className="text-xs text-slate-600">Inactive</div>
-              </div>
-            </div>
+          <div>
+            <div className="text-xs text-slate-500">Last login</div>
+            <div className="font-semibold text-slate-800">{dateTime(staff.access?.lastLoginAt)}</div>
           </div>
         </div>
 
-        {/* Teachers Table */}
-        <div className="table-card animate-fade-in">
-          <div className="flex flex-col lg:flex-row gap-4 mb-6">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                <input 
-                  type="text" 
-                  placeholder="Search teacher by name, subject, or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="input-field pl-10 w-full"
-                />
-              </div>
-            </div>
-          </div>
-
-          {isLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-3 p-4 rounded-xl skeleton h-20" />
+        <div>
+          <h4 className="text-sm font-bold text-slate-800 mb-2">Teaching</h4>
+          {details.data?.batches.length ? (
+            <div className="flex flex-wrap gap-2">
+              {details.data.batches.map((batch) => (
+                <span key={batch._id} className="px-3 py-1 rounded-full bg-slate-100 text-xs font-semibold text-slate-700">
+                  {refName(batch.programId)} · {batch.name}
+                </span>
               ))}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="text-xs font-semibold text-slate-600 uppercase tracking-wider py-3 px-4 text-left">Teacher</th>
-                    <th className="text-xs font-semibold text-slate-600 uppercase tracking-wider py-3 px-4 text-left">Subject</th>
-                    <th className="text-xs font-semibold text-slate-600 uppercase tracking-wider py-3 px-4 text-left">Classes</th>
-                    <th className="text-xs font-semibold text-slate-600 uppercase tracking-wider py-3 px-4 text-left">Experience</th>
-                    <th className="text-xs font-semibold text-slate-600 uppercase tracking-wider py-3 px-4 text-left">Status</th>
-                    <th className="text-xs font-semibold text-slate-600 uppercase tracking-wider py-3 px-4 text-left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredTeachers.map((teacher, index) => (
-                    <tr 
-                      key={teacher.email} 
-                      className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-200 animate-fade-in"
-                      style={{ animationDelay: `${300 + index * 50}ms` }}
-                    >
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-lg" style={{ backgroundColor: teacher.color }}>
-                            {teacher.initials}
-                          </div>
-                          <div>
-                            <div className="text-sm font-semibold text-slate-800">{teacher.name}</div>
-                            <div className="text-xs text-slate-500 flex items-center gap-2">
-                              <Mail className="w-3 h-3" />
-                              {teacher.email}
-                            </div>
-                            <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
-                              <Phone className="w-3 h-3" />
-                              {teacher.phone}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div>
-                          <div className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                            <BookOpen className="w-4 h-4 text-slate-400" />
-                            {teacher.subject}
-                          </div>
-                          <div className="text-xs text-slate-500 mt-1">{teacher.qualification}</div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="text-sm font-medium text-slate-700">{teacher.classes}</div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-slate-400" />
-                          <div>
-                            <div className="text-sm font-medium text-slate-700">{teacher.experience}</div>
-                            <div className="text-xs text-slate-500">Since {teacher.joinDate?.split('-')[0]}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${getStatusBadge(teacher.status)}`}>
-                          {teacher.status}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex gap-2">
-                          <button className="w-8 h-8 rounded-xl border-none cursor-pointer flex items-center justify-center text-sm bg-sky-500/10 text-sky-600 hover:bg-sky-500/20 transition-all duration-200 group">
-                            <Edit className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteTeacher(teacher.email)}
-                            className="w-8 h-8 rounded-xl border-none cursor-pointer flex items-center justify-center text-sm bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-all duration-200 group"
-                          >
-                            <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {filteredTeachers.length === 0 && (
-                <div className="text-center py-12">
-                  <GraduationCap className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                  <p className="text-slate-500">No teachers found matching your search.</p>
-                </div>
-              )}
-            </div>
+            <p className="text-sm text-slate-500">Not assigned to any class yet (assign in Classes).</p>
           )}
         </div>
+
+        {!isOwner && (
+          <div>
+            <h4 className="text-sm font-bold text-slate-800 mb-2">Roles</h4>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {STAFF_ROLES.filter((role) => role !== 'admin' || ownerView).map((role) => {
+                const on = roles.includes(role);
+                return (
+                  <button
+                    key={role}
+                    onClick={() => setRoles(on ? roles.filter((r) => r !== role) : [...roles, role])}
+                    className={chipClass(on)}
+                  >
+                    {roleLabel[role]}
+                  </button>
+                );
+              })}
+            </div>
+            <Button size="sm" variant="outline" disabled={!roles.length} isLoading={saveRoles.isPending} onClick={() => saveRoles.mutate()}>Save roles</Button>
+          </div>
+        )}
+
+        <div className="flex flex-wrap justify-between gap-2 pt-2 border-t border-slate-100">
+          {!isOwner &&
+            (staff.status === 'active' ? (
+              <Button variant="danger" leftIcon={<ShieldBan className="w-4 h-4" />} onClick={() => setConfirm(true)}>Block access</Button>
+            ) : (
+              <Button variant="success" leftIcon={<ShieldCheck className="w-4 h-4" />} onClick={() => unblock.mutate()} isLoading={unblock.isPending}>Restore access</Button>
+            ))}
+          <Button onClick={() => setEditing(true)}>Edit details</Button>
+        </div>
       </div>
-    </div>
+      <ConfirmDialog
+        isOpen={confirm}
+        onClose={() => setConfirm(false)}
+        onConfirm={() => block.mutate()}
+        isLoading={block.isPending}
+        title="Block access?"
+        description={`${staff.name} will be logged out and can no longer sign in to this institution. You can restore access anytime.`}
+        confirmText="Block"
+      />
+    </Modal>
   );
 };
